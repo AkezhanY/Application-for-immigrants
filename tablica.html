@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="pageTitle">Tablica Ogłoszeń</title>
+  <style>
+    
+    
+    
+    .language-dropdown {
+  position: absolute;
+  top: 50px; 
+  right: 0; 
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: none;
+  min-width: 150px;
+  z-index: 1001;
+}
+
+.language-dropdown.show {
+  display: block;
+}
+    
+    
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: white;
+      color: #666;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      position: relative;
+      z-index: 1000;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .left-icons {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .menu-icon, .phone-icon, .language-icon, .back-icon {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .menu-icon:hover, .phone-icon:hover, .language-icon:hover, .back-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 50px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      min-width: 200px;
+      z-index: 1001;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background-color: #f8f8f8;
+    }
+
+    .title {
+      font-size: 24px;
+      text-align: center;
+      margin: 30px 0 20px;
+      color: #ff6b35;
+      font-weight: bold;
+    }
+
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .category {
+      background: white;
+      border: 2px solid #f0f0f0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .category:hover {
+      border-color: #ff6b35;
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 90%;
+    }
+
+    .modal-content p {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .close-btn {
+      background: #ff6b35;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background: #e55c2f;
+    }
+
+    @media (max-width: 600px) {
+      .categories {
+        grid-template-columns: 1fr;
+      }
+
+      .title {
+        font-size: 20px;
+      }
+
+      .category {
+        padding: 20px;
+        font-size: 14px;
+      }
+    }
+    
+    
+    
+    .phone-number {
+  color: #ff6b35; 
+  font-weight: bold;
+}
+
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="left-icons">
+      <a href="index.html">
+        <svg class="back-icon" id="backIcon" viewBox="0 0 24 24" fill="#ff6b35">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+      </a>
+
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <div class="dropdown-item" onclick="location.href='bazawiedzy.html'" data-i18n="menu.knowledgeBase">BAZA WIEDZY</div>
+        <div class="dropdown-item" onclick="location.href='pomoc.html'" data-i18n="menu.help">POMOC</div>
+      </div>
+
+        <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item">
+            <span>Policja</span>
+            <span class="phone-number">997</span>
+        </div>
+        <div class="dropdown-item phone-item">
+            <span>Urząd Miasta</span>
+            <span class="phone-number">24 367 15 00</span>
+        </div>
+        <div class="dropdown-item phone-item">
+            <span>Straż Miejska</span>
+            <span class="phone-number">24 367 15 86</span>
+        </div>
+        <div class="dropdown-item phone-item">
+            <span>Ośrodek dla Imigrantów</span>
+            <span class="phone-number">24 367 16 50</span>
+        </div>
+    </div>
+</div>
+
+    <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35">
+      <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+    </svg>
+
+    <div class="dropdown language-dropdown" id="languageDropdown">
+      <div class="dropdown-item language-item" data-lang="pl">
+        <span class="flag-emoji">🇵🇱</span>
+        <span>Polski</span>
+      </div>
+      <div class="dropdown-item language-item" data-lang="en">
+        <span class="flag-emoji">🇬🇧</span>
+        <span>English</span>
+      </div>
+      <div class="dropdown-item language-item" data-lang="ru">
+        <span class="flag-emoji">🇷🇺</span>
+        <span>Русский</span>
+      </div>
+    </div>
+  </header>
+
+  <h1 class="title" data-i18n="pageTitle">TABLICA OGŁOSZEŃ</h1>
+
+  <div class="categories">
+    <div class="category" data-i18n="category.education">EDUKACJA</div>
+    <div class="category" data-i18n="category.health">ZDROWIE</div>
+    <div class="category" data-i18n="category.business">FIRMY</div>
+    <div class="category" data-i18n="category.services">USŁUGI</div>
+    <div class="category" data-i18n="category.assistance">OBSŁUGA</div>
+    <div class="category" data-i18n="category.others">INNE</div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <p data-i18n="noOffers">Brak dostępnych ofert pracy.</p>
+      <button class="close-btn" onclick="closeModal()" data-i18n="closeBtn">Zamknij</button>
+    </div>
+  </div>
+
+  <script>
+    const i18n = {
+      pl: {
+        pageTitle: "TABLICA OGŁOSZEŃ",
+        menu: {
+          knowledgeBase: "BAZA WIEDZY",
+          help: "POMOC"
+        },
+        phone: {
+          police: "Policja",
+          cityOffice: "Urząd Miasta",
+          cityGuard: "Straż Miejska",
+          immigrantCenter: "Ośrodek dla Imigrantów"
+        },
+        category: {
+          education: "EDUKACJA",
+          health: "ZDROWIE",
+          business: "FIRMY",
+          services: "USŁUGI",
+          assistance: "OBSŁUGA",
+          others: "INNE"
+        },
+        noOffers: "Brak dostępnych ofert pracy.",
+        closeBtn: "Zamknij"
+      },
+      en: {
+        pageTitle: "BULLETIN BOARD",
+        menu: {
+          knowledgeBase: "KNOWLEDGE BASE",
+          help: "HELP"
+        },
+        phone: {
+          police: "Police",
+          cityOffice: "City Office",
+          cityGuard: "City Guard",
+          immigrantCenter: "Immigrant Center"
+        },
+        category: {
+          education: "EDUCATION",
+          health: "HEALTH",
+          business: "BUSINESS",
+          services: "SERVICES",
+          assistance: "ASSISTANCE",
+          others: "OTHERS"
+        },
+        noOffers: "No job offers available.",
+        closeBtn: "Close"
+      },
+      ru: {
+        pageTitle: "ДОСКА ОБЪЯВЛЕНИЙ",
+        menu: {
+          knowledgeBase: "БАЗА ЗНАНИЙ",
+          help: "ПОМОЩЬ"
+        },
+        phone: {
+          police: "Полиция",
+          cityOffice: "Городская управа",
+          cityGuard: "Муниципальная стража",
+          immigrantCenter: "Центр для иммигрантов"
+        },
+        category: {
+          education: "ОБРАЗОВАНИЕ",
+          health: "ЗДОРОВЬЕ",
+          business: "БИЗНЕС",
+          services: "УСЛУГИ",
+          assistance: "ПОМОЩЬ",
+          others: "ДРУГОЕ"
+        },
+        noOffers: "Нет доступных вакансий.",
+        closeBtn: "Закрыть"
+      }
+    };
+
+    let lang = localStorage.getItem('lang') || 'pl';
+
+    function t(path) {
+      const parts = path.split('.');
+      let value = i18n[lang];
+      for (const p of parts) value = value?.[p];
+      return value ?? '';
+    }
+
+    function applyI18n() {
+      document.documentElement.lang = lang;
+
+      
+      document.querySelector('title').textContent = t('pageTitle');
+
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+      });
+    }
+
+    
+    document.querySelectorAll('.language-item').forEach(item => {
+      item.addEventListener('click', () => {
+        lang = item.getAttribute('data-lang');
+        localStorage.setItem('lang', lang);
+        applyI18n();
+        document.getElementById('languageDropdown').classList.remove('show');
+      });
+    });
+
+    
+    const menuDropdown = document.getElementById('menuDropdown');
+    const phoneDropdown = document.getElementById('phoneDropdown');
+    const languageDropdown = document.getElementById('languageDropdown');
+
+    document.getElementById('menuIcon').addEventListener('click', () => {
+      menuDropdown.classList.toggle('show');
+      phoneDropdown.classList.remove('show');
+      languageDropdown.classList.remove('show');
+    });
+
+    document.getElementById('phoneIcon').addEventListener('click', () => {
+      phoneDropdown.classList.toggle('show');
+      menuDropdown.classList.remove('show');
+      languageDropdown.classList.remove('show');
+    });
+
+    document.getElementById('languageIcon').addEventListener('click', () => {
+      languageDropdown.classList.toggle('show');
+      menuDropdown.classList.remove('show');
+      phoneDropdown.classList.remove('show');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown') && !e.target.closest('svg')) {
+        menuDropdown.classList.remove('show');
+        phoneDropdown.classList.remove('show');
+        languageDropdown.classList.remove('show');
+      }
+    });
+
+    applyI18n();
+    
+
+document.querySelectorAll('.category').forEach(item => {
+  item.addEventListener('click', () => {
+    
+    document.getElementById('modal').classList.add('show');
+  });
+});
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+  </script>
+</body>
+</html>

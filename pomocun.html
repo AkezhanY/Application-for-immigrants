@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="headTitle">Kontakt - Płock App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fffaf6; color: #333; min-height: 100vh; padding-top: 80px; }
+
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+    .left-icons, .right-icons { display: flex; gap: 15px; align-items: center; }
+    .menu-icon, .phone-icon, .language-icon, .profile-icon { width: 24px; height: 24px; cursor: pointer; transition: transform 0.2s ease; }
+    .menu-icon:hover, .phone-icon:hover, .language-icon:hover, .profile-icon:hover { transform: scale(1.1); }
+
+    .dropdown { position: absolute; top: 50px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; min-width: 200px; z-index: 1001; }
+    .dropdown.show { display: block; }
+    .menu-dropdown { left: 0; }
+    .phone-dropdown { left: 45px; }
+    .language-dropdown { right: 0; min-width: 150px; }
+    .profile-dropdown { right: 45px; min-width: 180px; }
+
+    .dropdown-item { padding: 12px 16px; cursor: pointer; transition: background-color 0.2s ease; border-bottom: 1px solid #f0f0f0; }
+    .dropdown-item:hover { background-color: #f8f8f8; }
+    .dropdown-item:last-child { border-bottom: none; }
+
+    .dropdown-item.phone-item { display: flex; justify-content: space-between; align-items: center; }
+    .dropdown-item.phone-item .phone-number { color: #ff6b35; font-weight: bold; }
+
+    .dropdown-item.language-item { display: flex; align-items: center; gap: 8px; }
+    .flag-emoji { font-size: 18px; }
+
+    .dropdown-header { padding: 8px 16px; background: #f8f8f8; border-bottom: 1px solid #e0e0e0; }
+    .verified-badge { color: #4CAF50; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+    .profile-item.logout { color: #dc3545; }
+
+    #overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.1); z-index: 500; display: none; }
+    #overlay.show { display: block; }
+
+    .contact-card { background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); max-width: 480px; width: 100%; padding: 30px; margin: 40px auto; animation: fadeInUp 0.8s ease; }
+    h1 { font-size: 26px; color: #ff6b35; margin-bottom: 20px; text-align: center; }
+
+    .contact-item { margin-bottom: 15px; }
+    .contact-item strong { display: block; color: #444; margin-bottom: 5px; }
+
+    .contact-form { margin-top: 30px; }
+    input, textarea { width: 100%; padding: 12px 14px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+    button { background: linear-gradient(135deg, #ff6b35, #ff8c42); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .plock-logo { width: 90px; height: 90px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .logo { width: 140px; height: 140px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3); border: 3px solid #ff6b35; position: relative; overflow: hidden; }
+    .logo img { width: 70px; height: auto; object-fit: contain; }
+  </style>
+</head>
+<body>
+  <div id="overlay"></div>
+
+  <header class="header">
+    <div class="left-icons">
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+
+      
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <div class="dropdown-item" onclick="location.href='index.html'" data-i18n="menu.home">Strona główna</div>
+        <div class="dropdown-item" onclick="location.href='aboutun.html'" data-i18n="menu.about">O aplikacji</div>
+        <div class="dropdown-item" onclick="location.href='pomocun.html'" data-i18n="menu.contact">Kontakt</div>
+      </div>
+
+      
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+      <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item"><span data-i18n="phone.police">Policja</span><span class="phone-number">997</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.cityOffice">Urząd Miasta</span><span class="phone-number">24 367 15 00</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.cityGuard">Straż Miejska</span><span class="phone-number">24 367 15 86</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.immigrantCenter">Ośrodek dla Imigrantów</span><span class="phone-number">24 367 16 50</span></div>
+      </div>
+    </div>
+
+    <div class="right-icons">
+      
+      <svg class="profile-icon" id="profileIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <circle cx="12" cy="12" r="10" stroke="#ff6b35" stroke-width="2" fill="white"/>
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#ff6b35"/>
+        <circle cx="18" cy="6" r="3" fill="#4CAF50"/>
+        <path d="M16.5 6.5l.7.7 1.3-1.3" stroke="white" stroke-width="1" fill="none"/>
+      </svg>
+      <div class="dropdown profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header"><span class="verified-badge" data-i18n="profile.status">❌ NIEZWERYFIKOWANY</span></div>
+        <div class="dropdown-item profile-item" onclick="location.href='login.html'" data-i18n="profile.profile">PROFIL</div>
+        <div class="dropdown-item profile-item" onclick="location.href='ankietaun.html'" data-i18n="profile.extraData">DANE DODATKOWE</div>
+        <div class="dropdown-item profile-item logout" onclick="location.href='login.html'" data-i18n="profile.logout">ZALOGUJ</div>
+      </div>
+
+      
+      <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+      </svg>
+      <div class="dropdown language-dropdown" id="languageDropdown">
+        <div class="dropdown-item language-item" data-lang="pl"><span class="flag-emoji">🇵🇱</span><span>Polski</span></div>
+        <div class="dropdown-item language-item" data-lang="en"><span class="flag-emoji">🇬🇧</span><span>English</span></div>
+        <div class="dropdown-item language-item" data-lang="ru"><span class="flag-emoji">🇷🇺</span><span>Русский</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div style="display: flex; justify-content: center; margin-top: 40px;">
+    <div class="logo">
+      <img src="https://drhosting.pl/plock4/logo_plock.jpeg" width="70" alt="Logo Płock">
+    </div>
+  </div>
+
+  <div class="contact-card">
+    <h1 data-i18n="pageTitle">Kontakt</h1>
+
+    <div class="contact-item">
+      <strong data-i18n="labels.address">📍 Adres:</strong>
+      <span data-i18n="values.address">Urząd Miasta Płock, Plac Stary Rynek 1, 09-400 Płock</span>
+    </div>
+
+    <div class="contact-item">
+      <strong data-i18n="labels.phone">📞 Telefon:</strong>
+      <span data-i18n="values.phone">24 367 15 00</span>
+    </div>
+
+    <div class="contact-item">
+      <strong data-i18n="labels.email">📧 Email:</strong>
+      <span data-i18n="values.email">kontakt@plock.eu</span>
+    </div>
+
+    <div class="contact-item">
+      <strong data-i18n="labels.hours">⏰ Godziny pracy:</strong>
+      <span data-i18n="values.hours">Poniedziałek – Piątek: 8:00–16:00</span>
+    </div>
+
+    <form class="contact-form" onsubmit="event.preventDefault(); alert(i18n[lang].alerts.sent); this.reset();">
+      <input type="text" required data-i18n-placeholder="form.name" placeholder="Twoje imię" />
+      <input type="email" required data-i18n-placeholder="form.email" placeholder="Twój email" />
+      <textarea rows="4" required data-i18n-placeholder="form.message" placeholder="Twoja wiadomość"></textarea>
+      <button type="submit" data-i18n="form.submit">Wyślij wiadomość</button>
+    </form>
+  </div>
+
+  <script>
+    
+    const i18n = {
+      pl: {
+        headTitle: "Kontakt - Płock App",
+        pageTitle: "Kontakt",
+        menu: { home: "Strona główna", about: "O aplikacji", contact: "Kontakt" },
+        phone: { police: "Policja", cityOffice: "Urząd Miasta", cityGuard: "Straż Miejska", immigrantCenter: "Ośrodek dla Imigrantów" },
+        profile: { status: "❌ NIEZWERYFIKOWANY", profile: "PROFIL", extraData: "DANE DODATKOWE", logout: "ZALOGUJ" },
+        labels: { address: "📍 Adres:", phone: "📞 Telefon:", email: "📧 Email:", hours: "⏰ Godziny pracy:" },
+        values: { address: "Urząd Miasta Płock, Plac Stary Rynek 1, 09-400 Płock", phone: "24 367 15 00", email: "kontakt@plock.eu", hours: "Poniedziałek – Piątek: 8:00–16:00" },
+        form: { name: "Twoje imię", email: "Twój email", message: "Twoja wiadomość", submit: "Wyślij wiadomość" },
+        alerts: { sent: "Wiadomość wysłana!" }
+      },
+      en: {
+        headTitle: "Contact - Płock App",
+        pageTitle: "Contact",
+        menu: { home: "Home", about: "About", contact: "Contact" },
+        phone: { police: "Police", cityOffice: "City Office", cityGuard: "City Guard", immigrantCenter: "Immigrant Center" },
+        profile: { status: "Guest", profile: "Profile", extraData: "Additional data", logout: "Log in" },
+        labels: { address: "📍 Address:", phone: "📞 Phone:", email: "📧 Email:", hours: "⏰ Opening hours:" },
+        values: { address: "City Hall of Płock, Plac Stary Rynek 1, 09-400 Płock", phone: "24 367 15 00", email: "kontakt@plock.eu", hours: "Monday–Friday: 8:00–16:00" },
+        form: { name: "Your name", email: "Your email", message: "Your message", submit: "Send message" },
+        alerts: { sent: "Message sent!" }
+      },
+      ru: {
+        headTitle: "Контакты — Płock App",
+        pageTitle: "Контакты",
+        menu: { home: "Главная", about: "О приложении", contact: "Контакты" },
+        phone: { police: "Полиция", cityOffice: "Городская управа", cityGuard: "Муниципальная стража", immigrantCenter: "Центр для иммигрантов" },
+        profile: { status: "Гость", profile: "Профиль", extraData: "Дополнительные данные", logout: "Войти" },
+        labels: { address: "📍 Адрес:", phone: "📞 Телефон:", email: "📧 Email:", hours: "⏰ Часы работы:" },
+        values: { address: "Мэрия Плоцка, пл. Старый рынок 1, 09-400 Плоцк", phone: "24 367 15 00", email: "kontakt@plock.eu", hours: "Понедельник–Пятница: 8:00–16:00" },
+        form: { name: "Ваше имя", email: "Ваш email", message: "Ваше сообщение", submit: "Отправить сообщение" },
+        alerts: { sent: "Сообщение отправлено!" }
+      }
+    };
+
+    let lang = localStorage.getItem('lang') || 'pl';
+
+    function t(path){
+      const parts = path.split('.');
+      let v = i18n[lang];
+      for (const p of parts) v = v?.[p];
+      return (typeof v === 'string') ? v : '';
+    }
+
+    function applyI18n(){
+      document.documentElement.lang = lang;
+
+      
+      const titleEl = document.querySelector('title[data-i18n="headTitle"]');
+      if (titleEl) titleEl.textContent = t('headTitle') || titleEl.textContent;
+
+      
+      document.querySelectorAll('[data-i18n]').forEach(el=>{
+        const key = el.getAttribute('data-i18n');
+        const txt = t(key);
+        if (txt) el.textContent = txt;
+      });
+
+      
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+        const key = el.getAttribute('data-i18n-placeholder');
+        const txt = t(key);
+        if (txt) el.setAttribute('placeholder', txt);
+      });
+    }
+
+    
+    const menuIcon = document.getElementById('menuIcon');
+    const phoneIcon = document.getElementById('phoneIcon');
+    const languageIcon = document.getElementById('languageIcon');
+    const profileIcon = document.getElementById('profileIcon');
+    const overlay = document.getElementById('overlay');
+
+    const menuDropdown = document.getElementById('menuDropdown');
+    const phoneDropdown = document.getElementById('phoneDropdown');
+    const languageDropdown = document.getElementById('languageDropdown');
+    const profileDropdown = document.getElementById('profileDropdown');
+
+    function closeAllDropdowns() {
+      menuDropdown.classList.remove('show');
+      phoneDropdown.classList.remove('show');
+      languageDropdown.classList.remove('show');
+      profileDropdown.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown') && !e.target.closest('svg')) {
+        closeAllDropdowns();
+      }
+    });
+
+    overlay?.addEventListener('click', closeAllDropdowns);
+
+    menuIcon?.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); menuDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    phoneIcon?.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); phoneDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    languageIcon?.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); languageDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    profileIcon?.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); profileDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+
+    
+    document.querySelectorAll('.language-dropdown .language-item').forEach(it=>{
+      it.addEventListener('click', ()=>{
+        lang = it.getAttribute('data-lang') || 'pl';
+        localStorage.setItem('lang', lang);
+        applyI18n();
+        closeAllDropdowns();
+      });
+    });
+
+    
+    applyI18n();
+  </script>
+</body>
+</html>

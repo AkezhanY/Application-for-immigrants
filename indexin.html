@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta name="format-detection" content="telephone=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aplikacja dla Imigrantów - Płock</title>
+  <style>
+    a[href^="tel"] {
+    color: inherit;
+    text-decoration: none;
+    pointer-events: none;
+    cursor: default;
+}
+
+    
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fff;color:#666;height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;position:relative;z-index:1000}
+    .left-icons,.right-icons{display:flex;gap:15px;align-items:center}
+    .menu-icon,.phone-icon,.language-icon,.profile-icon{width:24px;height:24px;cursor:pointer;transition:transform .2s ease}
+    .menu-icon:hover,.phone-icon:hover,.language-icon:hover,.profile-icon:hover{transform:scale(1.1)}
+    .dropdown{position:absolute;top:50px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:none;min-width:200px;z-index:1001}
+    .dropdown.show{display:block}
+    .menu-dropdown{left:0}
+    .phone-dropdown{left:45px}
+    .language-dropdown{right:0;min-width:150px}
+    .profile-dropdown{right:45px;min-width:180px}
+    .dropdown-header{padding:8px 16px;background:#f8f8f8;border-bottom:1px solid #e0e0e0}
+    .verified-badge{color:#4CAF50;font-size:12px;font-weight:bold;display:flex;align-items:center;gap:4px}
+    .profile-item{font-weight:500}
+    .profile-item.logout{color:#dc3545;border-top:1px solid #f0f0f0}
+    .dropdown-divider{height:1px;background:#e0e0e0;margin:5px 0}
+    .dropdown-item{padding:12px 16px;cursor:pointer;transition:background-color .2s ease;border-bottom:1px solid #f0f0f0}
+    .dropdown-item:last-child{border-bottom:none}
+    .dropdown-item:hover{background:#f8f8f8}
+    .dropdown-item.phone-item{display:flex;justify-content:space-between;align-items:center}
+    .dropdown-item.phone-item .phone-number{color:#ff6b35;font-weight:bold}
+    .dropdown-item.language-item{display:flex;align-items:center;gap:8px}
+    .flag-emoji{font-size:18px}
+    .main-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+    .logo{width:140px;height:140px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:40px;box-shadow:0 4px 20px rgba(255,107,53,.3);border:3px solid #ff6b35;position:relative;overflow:hidden}
+    .welcome-text{font-size:20px;color:#666;margin-bottom:40px;max-width:350px;line-height:1.4;min-height:60px;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+    .buttons-container{display:flex;flex-direction:column;gap:15px;width:100%;max-width:280px;margin-bottom:40px}
+    .main-button{background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;padding:15px 20px;border-radius:25px;font-size:16px;font-weight:bold;cursor:pointer;transition:all .3s ease;box-shadow:0 4px 15px rgba(255,107,53,.3);text-transform:uppercase;letter-spacing:.5px}
+    .main-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,53,.4)}
+    .main-button:active{transform:translateY(0)}
+    .ai-input-section{position:fixed;bottom:20px;left:20px;right:20px;background:#fff;border-radius:25px;border:2px solid #ff6b35;display:flex;align-items:center;padding:12px 20px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+    .ai-input{flex:1;border:none;outline:none;font-size:16px;color:#666;background:transparent}
+    .ai-input::placeholder{color:#999}
+    .mic-icon{width:24px;height:24px;cursor:pointer;margin-left:10px;transition:transform .2s ease}
+    .mic-icon:hover{transform:scale(1.1)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);display:none;z-index:999}
+    .overlay.show{display:block}
+    @media (max-width:480px){
+      .header{padding:12px 15px}
+      .logo{width:100px;height:100px}
+      .welcome-text{font-size:18px}
+      .ai-input-section{bottom:15px;left:15px;right:15px}
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <header class="header">
+    <div class="left-icons">
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <div class="dropdown-item" onclick="location.href='indexin.html'" data-i18n="home">Strona główna</div>
+        <div class="dropdown-item" onclick="location.href='about.html'" data-i18n="about">O aplikacji</div>
+        <div class="dropdown-item" onclick="location.href='pomoc.html'" data-i18n="help">Pomoc</div>
+      </div>
+
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+      <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item">
+          <span data-i18n="police">Policja</span>
+          <span class="phone-number"><a href="tel:997">997</a></span>
+        </div>
+        <div class="dropdown-item phone-item">
+          <span data-i18n="cityOffice">Urząd Miasta</span>
+          <span class="phone-number"><a href="tel:+48243671500">24 367 15 00</a></span>
+        </div>
+        <div class="dropdown-item phone-item">
+          <span data-i18n="cityGuard">Straż Miejska</span>
+          <span class="phone-number"><a href="tel:+48243671586">24 367 15 86</a></span>
+        </div>
+        <div class="dropdown-item phone-item">
+          <span data-i18n="immigrantCenter">Ośrodek dla Imigrantów</span>
+          <span class="phone-number"><a href="tel:+48243671650">24 367 16 50</a></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-icons">
+      <svg class="profile-icon" id="profileIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <circle cx="12" cy="12" r="10" stroke="#ff6b35" stroke-width="2" fill="white"/>
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#ff6b35"/>
+        <circle cx="18" cy="6" r="3" fill="#4CAF50"/>
+        <path d="M16.5 6.5l.7.7 1.3-1.3" stroke="white" stroke-width="1" fill="none"/>
+      </svg>
+
+      <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+      </svg>
+
+      <div class="dropdown profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+          <div class="profile-status">
+            <span class="verified-badge" data-i18n="verified">✓ ZWERYFIKOWANY</span>
+          </div>
+        </div>
+        <div class="dropdown-item profile-item" data-link="profil.html" data-i18n="profile">PROFIL</div>
+        <div class="dropdown-item profile-item" data-link="ankieta2.html" data-i18n="extraData">DANE DODATKOWE</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item profile-item logout" data-link="index.html" data-i18n="logout">WYLOGUJ</div>
+      </div>
+
+      <div class="dropdown language-dropdown" id="languageDropdown">
+        <div class="dropdown-item language-item" data-lang="pl">
+          <span class="flag-emoji">🇵🇱</span><span>Polski</span>
+        </div>
+        <div class="dropdown-item language-item" data-lang="en">
+          <span class="flag-emoji">🇬🇧</span><span>English</span>
+        </div>
+        <div class="dropdown-item language-item" data-lang="ru">
+          <span class="flag-emoji">🇷🇺</span><span>Русский</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="logo">
+      <img src="https://drhosting.pl/plock4/logo_plock.jpeg" width="50" alt="Płock logo">
+    </div>
+
+    <div class="welcome-text" id="welcomeText" data-i18n="welcome">
+      Witamy w aplikacji dla obcokrajowców
+    </div>
+
+    <div class="buttons-container">
+      <a href="/pierwsze"><button class="main-button" id="surveyBtn" data-i18n="firstSteps">Pierwsze kroki</button></a>
+      <a href="/bazawiedzy"><button class="main-button" id="firstStepsBtn" data-i18n="knowledgeBase">Baza wiedzy</button></a>
+      <a href="/kroki"><button class="main-button" id="knowledgeBaseBtn" data-i18n="faq">FAQ</button></a>
+    </div>
+  </main>
+
+  <div class="ai-input-section">
+    <input type="text" class="ai-input" id="aiInput"
+           placeholder="W czym mogę Ci pomóc? (napisz lub zadaj pytanie)"
+           data-i18n="aiPlaceholder" data-i18n-attr="placeholder">
+    <svg class="mic-icon" id="micIcon" viewBox="0 0 24 24" fill="#ff6b35">
+      <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+    </svg>
+  </div>
+
+  <script>
+    
+    const translations = {
+      pl: {
+        home: "Strona główna",
+        about: "O aplikacji",
+        help: "Pomoc",
+        police: "Policja",
+        cityOffice: "Urząd Miasta",
+        cityGuard: "Straż Miejska",
+        immigrantCenter: "Ośrodek dla Imigrantów",
+        verified: "✓ ZWERYFIKOWANY",
+        profile: "PROFIL",
+        extraData: "DANE DODATKOWE",
+        logout: "WYLOGUJ",
+        welcome: "Witamy w aplikacji dla obcokrajowców",
+        firstSteps: "Pierwsze kroki",
+        knowledgeBase: "Baza wiedzy",
+        faq: "FAQ",
+        aiPlaceholder: "W czym mogę Ci pomóc? (napisz lub zadaj pytanie)"
+      },
+      en: {
+        home: "Home",
+        about: "About",
+        help: "Help",
+        police: "Police",
+        cityOffice: "City Office",
+        cityGuard: "City Guard",
+        immigrantCenter: "Immigrant Center",
+        verified: "✓ VERIFIED",
+        profile: "PROFILE",
+        extraData: "ADDITIONAL DATA",
+        logout: "LOG OUT",
+        welcome: "Welcome to the application for foreigners",
+        firstSteps: "First steps",
+        knowledgeBase: "Knowledge base",
+        faq: "FAQ",
+        aiPlaceholder: "How can I help you? (type or ask a question)"
+      },
+      ru: {
+        home: "Главная",
+        about: "О приложении",
+        help: "Помощь",
+        police: "Полиция",
+        cityOffice: "Городская управа",
+        cityGuard: "Муниципальная стража",
+        immigrantCenter: "Центр для иммигрантов",
+        verified: "✓ ПОДТВЕРЖДЕНО",
+        profile: "ПРОФИЛЬ",
+        extraData: "ДОП. ДАННЫЕ",
+        logout: "ВЫЙТИ",
+        welcome: "Добро пожаловать в приложение для иностранцев",
+        firstSteps: "Первые шаги",
+        knowledgeBase: "База знаний",
+        faq: "FAQ",
+        aiPlaceholder: "Чем я могу помочь? (напиши или задай вопрос)"
+      }
+    };
+
+    function applyLanguage(lang){
+      if(!translations[lang]) return;
+      document.documentElement.lang = lang;
+
+      
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const key = el.getAttribute("data-i18n");
+        const attr = el.getAttribute("data-i18n-attr");
+        const val = translations[lang][key];
+        if (val == null) return;
+        if (attr) {
+          el.setAttribute(attr, val);
+        } else {
+          el.textContent = val;
+        }
+      });
+    }
+
+    function setLanguage(lang){
+      localStorage.setItem("lang", lang);
+      applyLanguage(lang);
+    }
+
+    
+    const welcomeTexts = {
+      pl: [
+        "Witamy w aplikacji dla obcokrajowców",
+        "Miło Cię widzieć!",
+        "Twoje centrum informacji w Płocku"
+      ],
+      en: [
+        "Welcome to the application for foreigners",
+        "Good to see you!",
+        "Your info hub in Płock"
+      ],
+      ru: [
+        "Добро пожаловать в приложение для иностранцев",
+        "Рады видеть тебя!",
+        "Твой инфо-центр в Плоцке"
+      ]
+    };
+
+    let currentTextIndex = 0;
+    const welcomeTextElement = document.getElementById('welcomeText');
+
+    function rotateWelcomeText(){
+      const lang = localStorage.getItem("lang") || "pl";
+      const list = welcomeTexts[lang] || welcomeTexts.pl;
+      welcomeTextElement.style.opacity = '0.3';
+      setTimeout(()=>{
+        currentTextIndex = (currentTextIndex + 1) % list.length;
+        welcomeTextElement.textContent = list[currentTextIndex];
+        welcomeTextElement.style.opacity = '1';
+      },300);
+    }
+
+    
+    const menuIcon = document.getElementById('menuIcon');
+    const phoneIcon = document.getElementById('phoneIcon');
+    const languageIcon = document.getElementById('languageIcon');
+    const profileIcon = document.getElementById('profileIcon');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const phoneDropdown = document.getElementById('phoneDropdown');
+    const languageDropdown = document.getElementById('languageDropdown');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const overlay = document.getElementById('overlay');
+    const micIcon = document.getElementById('micIcon');
+    const aiInput = document.getElementById('aiInput');
+
+    function closeAllDropdowns(){
+      menuDropdown.classList.remove('show');
+      phoneDropdown.classList.remove('show');
+      languageDropdown.classList.remove('show');
+      profileDropdown.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+
+    
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const saved = localStorage.getItem("lang") || "pl";
+      applyLanguage(saved);
+      
+      document.getElementById('welcomeText').textContent = translations[saved].welcome;
+      setTimeout(()=>{ setInterval(rotateWelcomeText, 2000); }, 2000);
+    });
+
+    
+    menuIcon.addEventListener('click', (e)=>{ e.stopPropagation(); closeAllDropdowns(); menuDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    phoneIcon.addEventListener('click', (e)=>{ e.stopPropagation(); closeAllDropdowns(); phoneDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    languageIcon.addEventListener('click', (e)=>{ e.stopPropagation(); closeAllDropdowns(); languageDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    profileIcon.addEventListener('click', (e)=>{ e.stopPropagation(); closeAllDropdowns(); profileDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    overlay.addEventListener('click', closeAllDropdowns);
+
+    document.addEventListener('click', (e)=>{
+      if (!e.target.closest('.dropdown')
+          && !e.target.closest('.menu-icon')
+          && !e.target.closest('.phone-icon')
+          && !e.target.closest('.language-icon')
+          && !e.target.closest('.profile-icon')){
+        closeAllDropdowns();
+      }
+    });
+
+    
+    document.querySelectorAll('.menu-dropdown .dropdown-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        console.log('Przekierowanie do: '+item.textContent);
+        closeAllDropdowns();
+      });
+    });
+
+    
+    document.querySelectorAll('.phone-dropdown .dropdown-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const phoneNumber = item.querySelector('.phone-number')?.innerText || '';
+        console.log('Dzwonienie na numer: ' + phoneNumber);
+        closeAllDropdowns();
+      });
+    });
+
+    
+    document.querySelectorAll('.language-dropdown .language-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const lang = item.getAttribute('data-lang');
+        setLanguage(lang);
+        
+        document.getElementById('welcomeText').textContent = translations[lang].welcome;
+        currentTextIndex = 0;
+        console.log('Zmiana języka na:', lang);
+        closeAllDropdowns();
+      });
+    });
+
+    
+    document.querySelectorAll('.profile-dropdown .dropdown-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const action = item.getAttribute('data-link') || item.textContent.trim();
+        console.log('Akcja profilu: ' + action);
+        if (item.dataset.link) {
+          window.location.href = item.dataset.link;
+        }
+        closeAllDropdowns();
+      });
+    });
+
+    
+    micIcon.addEventListener('click', ()=>{
+      console.log('Rozpoczęcie nagrywania głosu...');
+      micIcon.style.fill = '#ff8c42';
+      setTimeout(()=>{ micIcon.style.fill = '#ff6b35'; }, 2000);
+    });
+
+    
+    aiInput.addEventListener('keypress', (e)=>{
+      if (e.key === 'Enter' && aiInput.value.trim()){
+        console.log('Wysłanie zapytania do AI: ' + aiInput.value);
+        aiInput.value = '';
+      }
+    });
+
+    
+    document.querySelectorAll('.dropdown').forEach(dropdown=>{
+      dropdown.addEventListener('click', (e)=>{ e.stopPropagation(); });
+    });
+  </script>
+</body>
+</html>

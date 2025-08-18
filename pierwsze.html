@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="headTitle">Pierwsze Kroki - Aplikacja dla Imigrantów</title>
+    <style>
+     * { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: white; color: #666; min-height: 100vh; display: flex; flex-direction: column; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; position: relative; z-index: 1000; border-bottom: 1px solid #f0f0f0; }
+.left-icons { display: flex; gap: 15px; align-items: center; }
+.right-icons { display: flex; gap: 15px; align-items: center; }
+.menu-icon, .phone-icon, .language-icon, .profile-icon, .back-icon { width: 24px; height: 24px; cursor: pointer; transition: transform 0.2s ease; }
+.menu-icon:hover, .phone-icon:hover, .language-icon:hover, .profile-icon:hover, .back-icon:hover { transform: scale(1.1); }
+.dropdown { position: absolute; top: 50px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; min-width: 200px; z-index: 1001; }
+.dropdown.show { display: block; }
+.menu-dropdown { left: 0; }
+.phone-dropdown { left: 45px; }
+.language-dropdown { right: 0; min-width: 150px; }
+.profile-dropdown { right: 45px; min-width: 180px; }
+.dropdown-item { padding: 12px 16px; cursor: pointer; transition: background-color 0.2s ease; border-bottom: 1px solid #f0f0f0; }
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover { background-color: #f8f8f8; }
+.dropdown-item a { color: #666; text-decoration: none; }
+.dropdown-item a:hover { color: #666; }
+.dropdown-item.phone-item { display: flex; justify-content: space-between; align-items: center; }
+.dropdown-item.phone-item .phone-number { color: #ff6b35; font-weight: bold; }
+.dropdown-item.language-item { display: flex; align-items: center; gap: 8px; }
+.flag-emoji { font-size: 18px; }
+.dropdown-header { padding: 8px 16px; background: #f8f8f8; border-bottom: 1px solid #e0e0e0; }
+.verified-badge { color: #4CAF50; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+.profile-item { font-weight: 500; }
+.profile-item.logout { color: #dc3545; border-top: 1px solid #f0f0f0; }
+.dropdown-divider { height: 1px; background: #e0e0e0; margin: 5px 0; }
+.main-content { flex: 1; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; }
+.page-title { text-align: center; font-size: 24px; color: #ff6b35; margin-bottom: 30px; font-weight: bold; }
+.timeline-container { position: relative; max-width: 600px; margin: 0 auto; padding: 40px 0; }
+.timeline-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #e0e0e0; border-radius: 2px; transform: translateX(-50%); z-index: 1; }
+.timeline-line-progress { position: absolute; left: 50%; top: 0; width: 4px; background: linear-gradient(to bottom, #ff6b35, #ff8c42); border-radius: 2px; transform: translateX(-50%); height: 0%; transition: height 0.8s ease; z-index: 2; }
+.timeline-item { position: relative; margin-bottom: 60px; opacity: 0; transform: translateY(50px); transition: all 0.8s ease; }
+.timeline-item:nth-child(even) { transform: translateY(50px) translateX(-30px); }
+.timeline-item:nth-child(odd) { transform: translateY(50px) translateX(30px); }
+.timeline-item.show { opacity: 1; transform: translateY(0) translateX(0); }
+.timeline-item:nth-child(even) .timeline-content { margin-right: 50%; margin-left: 0; padding-right: 40px; text-align: right; }
+.timeline-item:nth-child(odd) .timeline-content { margin-left: 50%; margin-right: 0; padding-left: 40px; text-align: left; }
+.timeline-marker { position: absolute; left: 50%; top: 30px; width: 24px; height: 24px; background: white; border: 4px solid #e0e0e0; border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 0 4px white, 0 2px 10px rgba(0,0,0,0.1); z-index: 10; transition: all 0.5s ease; }
+.timeline-item.show .timeline-marker { border-color: #ff6b35; background: #ff6b35; transform: translateX(-50%) scale(1.2); }
+.timeline-content { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 2px solid #f0f0f0; transition: all 0.3s ease; position: relative; }
+.timeline-item.show .timeline-content { border-color: #ff6b35; box-shadow: 0 12px 35px rgba(255, 107, 53, 0.15); }
+.timeline-item:nth-child(even) .timeline-content::after { content: ''; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border: 10px solid transparent; border-left-color: #f0f0f0; transition: border-left-color 0.3s ease; }
+.timeline-item:nth-child(odd) .timeline-content::after { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border: 10px solid transparent; border-right-color: #f0f0f0; transition: border-right-color 0.3s ease; }
+.timeline-item.show:nth-child(even) .timeline-content::after { border-left-color: #ff6b35; }
+.timeline-item.show:nth-child(odd) .timeline-content::after { border-right-color: #ff6b35; }
+.step-number { display: inline-block; background: linear-gradient(135deg, #ff6b35, #ff8c42); color: white; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 15px; }
+.step-title { font-size: 20px; color: #333; font-weight: bold; margin-bottom: 12px; line-height: 1.3; }
+.step-description { color: #666; line-height: 1.6; font-size: 16px; }
+.step-highlight { background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 4px solid #ff6b35; margin-top: 15px; }
+.step-highlight strong { color: #ff6b35; }
+.congratulations { text-align: center; background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; padding: 30px; border-radius: 15px; margin-top: 40px; box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3); opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
+.congratulations.show { opacity: 1; transform: translateY(0); }
+.congratulations h2 { font-size: 24px; margin-bottom: 15px; font-weight: bold; }
+.congratulations p { font-size: 16px; margin-bottom: 20px; line-height: 1.5; }
+.knowledge-base-link { display: inline-block; background: white; color: #4CAF50; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.knowledge-base-link:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: #f8f8f8; }
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; z-index: 999; }
+.overlay.show { display: block; }
+@media (max-width: 600px) {
+    .main-content { padding: 15px; }
+    .timeline-item:nth-child(even) .timeline-content, .timeline-item:nth-child(odd) .timeline-content { margin-left: 60px; margin-right: 20px; padding: 20px; text-align: left; }
+    .timeline-item:nth-child(even) .timeline-content::after, .timeline-item:nth-child(odd) .timeline-content::after { left: -10px; right: auto; border-left-color: transparent; border-right-color: #f0f0f0; }
+    .timeline-item.show:nth-child(even) .timeline-content::after, .timeline-item.show:nth-child(odd) .timeline-content::after { border-left-color: transparent; border-right-color: #ff6b35; }
+    .timeline-marker { left: 20px; transform: none; }
+    .timeline-line, .timeline-line-progress { left: 32px; transform: none; }
+    .page-title { font-size: 20px; }
+    .step-title { font-size: 18px; }
+    .congratulations h2 { font-size: 20px; }
+}
+.scroll-indicator { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); color: #ff6b35; font-size: 14px; display: flex; flex-direction: column; align-items: center; animation: bounce 2s infinite; opacity: 0.7; }
+.scroll-indicator.hide { display: none; }
+@keyframes bounce {
+    0%,20%,50%,80%,100% { transform: translateX(-50%) translateY(0); }
+    40% { transform: translateX(-50%) translateY(-10px); }
+    60% { transform: translateX(-50%) translateY(-5px); }
+}
+.congratulations .dropdown-item { background-color: #4CAF50; color: white; padding: 12px 25px; border-radius: 25px; display: inline-block; cursor: pointer; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: background-color 0.3s ease, box-shadow 0.3s ease; user-select: none; text-align: center; }
+.congratulations .dropdown-item:hover { background-color: #ff6b35 !important; color: white !important; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.5); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <header class="header">
+        <div class="left-icons">
+            <a href="index.html" aria-label="Back">
+              <svg class="back-icon" id="backIcon" viewBox="0 0 24 24" fill="#ff6b35" aria-hidden="true">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+              </svg>
+            </a>
+            <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            </svg>
+            <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+            </svg>
+            <div class="dropdown menu-dropdown" id="menuDropdown">
+              <div class="dropdown-item"><a href="kroki.html" data-i18n="menu.firstSteps">PIERWSZE KROKI</a></div>
+              <div class="dropdown-item"><a href="ankieta2.html" data-i18n="menu.survey">ANKIETA</a></div>
+              <div class="dropdown-item"><a href="bazawiedzy.html" data-i18n="menu.knowledge">BAZA WIEDZY</a></div>
+              <div class="dropdown-item"><a href="pomoc.html" data-i18n="menu.help">POMOC</a></div>
+            </div>
+            <div class="dropdown phone-dropdown" id="phoneDropdown">
+                <div class="dropdown-item phone-item"><span data-i18n="phone.police">Policja</span><span class="phone-number">997</span></div>
+                <div class="dropdown-item phone-item"><span data-i18n="phone.cityOffice">Urząd Miasta</span><span class="phone-number">24 367 15 00</span></div>
+                <div class="dropdown-item phone-item"><span data-i18n="phone.cityGuard">Straż Miejska</span><span class="phone-number">24 367 15 86</span></div>
+                <div class="dropdown-item phone-item"><span data-i18n="phone.immigrantCenter">Ośrodek dla Imigrantów</span><span class="phone-number">24 367 16 50</span></div>
+            </div>
+        </div>
+
+        <div class="right-icons">
+            <svg class="profile-icon" id="profileIcon" viewBox="0 0 24 24" fill="#ff6b35">
+                <circle cx="12" cy="12" r="10" stroke="#ff6b35" stroke-width="2" fill="white"/>
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#ff6b35"/>
+                <circle cx="18" cy="6" r="3" fill="#4CAF50"/>
+                <path d="M16.5 6.5l.7.7 1.3-1.3" stroke="white" stroke-width="1" fill="none"/>
+            </svg>
+            <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35">
+                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+            </svg>
+
+            <div class="dropdown profile-dropdown" id="profileDropdown">
+              <div class="dropdown-header">
+                <div class="profile-status">
+                  <span class="verified-badge" id="verifiedBadge" data-i18n="profile.verified">✓ ZWERYFIKOWANY</span>
+                </div>
+              </div>
+              <div class="dropdown-item profile-item"><a href="profil.html" data-i18n="profile.profile">PROFIL</a></div>
+              <div class="dropdown-item profile-item"><a href="ankieta2.html" data-i18n="profile.extra">DANE DODATKOWE</a></div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item profile-item logout"><a href="index.html" data-i18n="profile.logout">WYLOGUJ</a></div>
+            </div>
+
+            <div class="dropdown language-dropdown" id="languageDropdown">
+                <div class="dropdown-item language-item" data-lang="pl"><span class="flag-emoji">🇵🇱</span><span>Polski</span></div>
+                <div class="dropdown-item language-item" data-lang="en"><span class="flag-emoji">🇬🇧</span><span>English</span></div>
+                <div class="dropdown-item language-item" data-lang="ru"><span class="flag-emoji">🇷🇺</span><span>Русский</span></div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <h1 class="page-title" data-i18n="page.title">PIERWSZE KROKI</h1>
+        
+        <div class="timeline-container">
+            <div class="timeline-line"></div>
+            <div class="timeline-line-progress" id="timelineProgress"></div>
+            
+            
+            <div class="timeline-item" data-step="1">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="step-number" data-i18n-step>KROK 1</div>
+                    <h3 class="step-title" data-i18n="steps.1.title">Przygotuj dokumenty</h3>
+                    <p class="step-description" data-i18n="steps.1.desc">
+                        Zbierz wszystkie niezbędne dokumenty: paszport lub inny dokument tożsamości, dokumenty potwierdzające cel pobytu, środki finansowe oraz miejsce zamieszkania.
+                    </p>
+                    <div class="step-highlight">
+                        <strong data-i18n="labels.important">Ważne:</strong>
+                        <span data-i18n="steps.1.note">Wszystkie dokumenty zagraniczne muszą być przetłumaczone przez tłumacza przysięgłego.</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="timeline-item" data-step="2">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="step-number" data-i18n-step>KROK 2</div>
+                    <h3 class="step-title" data-i18n="steps.2.title">Złóż wniosek o pobyt</h3>
+                    <p class="step-description" data-i18n="steps.2.desc">
+                        Udaj się do Urzędu Wojewódzkiego w Płocku lub złóż wniosek online. Wybierz odpowiedni rodzaj pobytu: czasowy, stały lub długoterminowy rezydent UE.
+                    </p>
+                    <div class="step-highlight">
+                        <strong data-i18n="labels.address">Adres:</strong>
+                        <span data-i18n="steps.2.note">Wojewódzki Urząd w Warszawie, Delegatura w Płocku, ul. Kolegialna 15.</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="timeline-item" data-step="3">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="step-number" data-i18n-step>KROK 3</div>
+                    <h3 class="step-title" data-i18n="steps.3.title">Zamelduj się w Płocku</h3>
+                    <p class="step-description" data-i18n="steps.3.desc">
+                        Jeśli planujesz pobyt dłuższy niż 30 dni, zgłoś swój pobyt w Urzędzie Miasta Płocka. To konieczne do uzyskania PESEL-u i dostępu do usług publicznych.
+                    </p>
+                    <div class="step-highlight">
+                        <strong data-i18n="labels.where">Gdzie:</strong>
+                        <span data-i18n="steps.3.note">Urząd Miasta Płocka, ul. Zduńska 3, Biuro Obsługi Klienta.</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="timeline-item" data-step="4">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="step-number" data-i18n-step>KROK 4</div>
+                    <h3 class="step-title" data-i18n="steps.4.title">Uzyskaj PESEL</h3>
+                    <p class="step-description" data-i18n="steps.4.desc">
+                        PESEL to Twój numer identyfikacyjny w Polsce. Otrzymasz go automatycznie przy meldunku lub możesz złożyć osobny wniosek. Jest niezbędny do pracy, opieki zdrowotnej i wielu innych spraw.
+                    </p>
+                    <div class="step-highlight">
+                        <strong data-i18n="labels.remember">Pamiętaj:</strong>
+                        <span data-i18n="steps.4.note">PESEL jest bezpłatny i potrzebny do większości formalności w Polsce.</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="timeline-item" data-step="5">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="step-number" data-i18n-step>KROK 5</div>
+                    <h3 class="step-title" data-i18n="steps.5.title">Odbierz kartę pobytu</h3>
+                    <p class="step-description" data-i18n="steps.5.desc">
+                        Po pozytywnej decyzji odbierz swoją kartę pobytu w urzędzie. To Twój oficjalny dokument potwierdzający legalne przebywanie w Polsce.
+                    </p>
+                    <div class="step-highlight">
+                        <strong data-i18n="labels.waitTime">Czas oczekiwania:</strong>
+                        <span data-i18n="steps.5.note">Decyzja zapada zwykle w ciągu 1–3 miesięcy od złożenia kompletnego wniosku.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="congratulations" id="congratulations">
+            <h2 data-i18n="congrats.title">🎉 GRATULUJEMY!</h2>
+            <p data-i18n="congrats.desc">Dowiedz się więcej na temat interesujących Ciebie zagadnień w naszej</p>
+            <div class="dropdown-item"><a id="knowledgeBaseLink" href="bazawiedzy.html" data-i18n="congrats.button">BAZA WIEDZY</a></div>
+        </div>
+    </main>
+
+    <div class="scroll-indicator" id="scrollIndicator">
+        <span data-i18n="scroll.down">Przewiń w dół</span>
+        <span style="font-size: 20px; margin-top: 5px;">↓</span>
+    </div>
+
+    <script>
+
+const i18n = {
+  pl: {
+    headTitle: "Pierwsze Kroki - Aplikacja dla Imigrantów",
+    menu: { firstSteps: "PIERWSZE KROKI", survey: "ANKIETA", knowledge: "BAZA WIEDZY", help: "POMOC" },
+    phone: { police: "Policja", cityOffice: "Urząd Miasta", cityGuard: "Straż Miejska", immigrantCenter: "Ośrodek dla Imigrantów" },
+    profile: { verified: "✓ ZWERYFIKOWANY", profile: "PROFIL", extra: "DANE DODATKOWE", logout: "WYLOGUJ" },
+    page: { title: "PIERWSZE KROKI" },
+    labels: { important: "Ważne:", address: "Adres:", where: "Gdzie:", remember: "Pamiętaj:", waitTime: "Czas oczekiwania:" },
+    stepWord: "KROK",
+    steps: {
+      1: { title: "Przygotuj dokumenty", desc: "Zbierz wszystkie niezbędne dokumenty: paszport lub inny dokument tożsamości, dokumenty potwierdzające cel pobytu, środki finansowe oraz miejsce zamieszkania.", note: "Wszystkie dokumenty zagraniczne muszą być przetłumaczone przez tłumacza przysięgłego." },
+      2: { title: "Złóż wniosek o pobyt", desc: "Udaj się do Urzędu Wojewódzkiego w Płocku lub złóż wniosek online. Wybierz odpowiedni rodzaj pobytu: czasowy, stały lub długoterminowy rezydent UE.", note: "Wojewódzki Urząd w Warszawie, Delegatura w Płocku, ul. Kolegialna 15." },
+      3: { title: "Zamelduj się w Płocku", desc: "Jeśli planujesz pobyt dłuższy niż 30 dni, zgłoś swój pobyt w Urzędzie Miasta Płocka. To konieczne do uzyskania PESEL-u i dostępu do usług publicznych.", note: "Urząd Miasta Płocka, ul. Zduńska 3, Biuro Obsługi Klienta." },
+      4: { title: "Uzyskaj PESEL", desc: "PESEL to Twój numer identyfikacyjny w Polsce. Otrzymasz go automatycznie przy meldunku lub możesz złożyć osobny wniosek. Jest niezbędny do pracy, opieki zdrowotnej i wielu innych spraw.", note: "PESEL jest bezpłatny i potrzebny do większości formalności w Polsce." },
+      5: { title: "Odbierz kartę pobytu", desc: "Po pozytywnej decyzji odbierz swoją kartę pobytu w urzędzie. To Twój oficjalny dokument potwierdzający legalne przebywanie w Polsce.", note: "Decyzja zapada zwykle w ciągu 1–3 miesięcy od złożenia kompletnego wniosku." }
+    },
+    congrats: { title: "🎉 GRATULUJEMY!", desc: "Dowiedz się więcej na temat interesujących Ciebie zagadnień w naszej", button: "BAZA WIEDZY" },
+    scroll: { down: "Przewiń w dół" }
+  },
+  en: {
+    headTitle: "First Steps - Immigrants App",
+    menu: { firstSteps: "FIRST STEPS", survey: "SURVEY", knowledge: "KNOWLEDGE BASE", help: "HELP" },
+    phone: { police: "Police", cityOffice: "City Office", cityGuard: "City Guard", immigrantCenter: "Immigrant Center" },
+    profile: { verified: "✓ VERIFIED", profile: "PROFILE", extra: "ADDITIONAL DATA", logout: "LOG OUT" },
+    page: { title: "FIRST STEPS" },
+    labels: { important: "Important:", address: "Address:", where: "Where:", remember: "Remember:", waitTime: "Waiting time:" },
+    stepWord: "STEP",
+    steps: {
+      1: { title: "Prepare your documents", desc: "Collect all necessary documents: passport or other ID, documents proving the purpose of stay, financial means and accommodation.", note: "Foreign documents must be translated by a sworn translator." },
+      2: { title: "Apply for residence", desc: "Go to the Voivodeship Office in Płock or apply online. Choose the right type: temporary, permanent or EU long-term resident.", note: "Voivodeship Office in Warsaw, Płock Delegation, ul. Kolegialna 15." },
+      3: { title: "Register your address in Płock", desc: "If you plan to stay more than 30 days, report your stay to the City Hall. This is needed for PESEL and public services.", note: "City Hall of Płock, ul. Zduńska 3, Customer Service Office." },
+      4: { title: "Get a PESEL number", desc: "PESEL is your national ID number in Poland. You receive it automatically when registering your address or by a separate application. Needed for work, healthcare and more.", note: "PESEL is free and required for most formalities." },
+      5: { title: "Collect your residence card", desc: "After a positive decision, collect your residence card at the office. It confirms your legal stay in Poland.", note: "A decision usually takes 1–3 months after submitting a complete application." }
+    },
+    congrats: { title: "🎉 CONGRATS!", desc: "Learn more about topics you’re interested in in our", button: "KNOWLEDGE BASE" },
+    scroll: { down: "Scroll down" }
+  },
+  ru: {
+    headTitle: "Первые шаги — Приложение для иммигрантов",
+    menu: { firstSteps: "ПЕРВЫЕ ШАГИ", survey: "АНКЕТА", knowledge: "БАЗА ЗНАНИЙ", help: "ПОМОЩЬ" },
+    phone: { police: "Полиция", cityOffice: "Городская управа", cityGuard: "Муниципальная стража", immigrantCenter: "Центр для иммигрантов" },
+    profile: { verified: "✓ ПОДТВЕРЖДЕНО", profile: "ПРОФИЛЬ", extra: "ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ", logout: "ВЫЙТИ" },
+    page: { title: "ПЕРВЫЕ ШАГИ" },
+    labels: { important: "Важно:", address: "Адрес:", where: "Где:", remember: "Помните:", waitTime: "Срок ожидания:" },
+    stepWord: "ШАГ",
+    steps: {
+      1: { title: "Подготовьте документы", desc: "Соберите необходимые документы: паспорт/удостоверение, бумаги, подтверждающие цель пребывания, финансовые средства и место проживания.", note: "Иностранные документы должны быть переведены присяжным переводчиком." },
+      2: { title: "Подайте заявление на пребывание", desc: "Обратитесь в Воеводское управление в Плоцке или подайте онлайн. Выберите тип: временный, постоянный или долгосрочный резидент ЕС.", note: "Воеводское управление в Варшаве, делегатура в Плоцке, ул. Колегьяльна 15." },
+      3: { title: "Зарегистрируйтесь по адресу в Плоцке", desc: "Если планируете остаться более 30 дней, зарегистрируйте пребывание в мэрии. Это нужно для PESEL и доступа к услугам.", note: "Управление города Плоцка, ул. Здуньска 3, бюро обслуживания." },
+      4: { title: "Получите номер PESEL", desc: "PESEL — ваш идентификационный номер в Польше. Его дают при регистрации места жительства или по отдельному заявлению. Нужен для работы, медицины и др.", note: "PESEL бесплатный и требуется для большинства формальностей." },
+      5: { title: "Заберите карту побыту", desc: "После положительного решения заберите карту побыту в управлении. Она подтверждает легальность пребывания в Польше.", note: "Решение обычно занимает 1–3 месяца после подачи полного пакета документов." }
+    },
+    congrats: { title: "🎉 ПОЗДРАВЛЯЕМ!", desc: "Узнайте больше по интересующим темам в нашей", button: "БАЗЕ ЗНАНИЙ" },
+    scroll: { down: "Прокрутите вниз" }
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'pl';
+function t(path){
+  const parts = path.split('.');
+  let v = i18n[lang];
+  for (const p of parts) v = v?.[p];
+  return (typeof v === 'string') ? v : '';
+}
+
+function applyI18n(){
+  document.documentElement.lang = lang;
+
+  
+  const titleEl = document.querySelector('title[data-i18n="headTitle"]');
+  if (titleEl) titleEl.textContent = t('headTitle') || titleEl.textContent;
+
+  
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val) el.textContent = val;
+  });
+
+  
+  document.querySelectorAll('[data-i18n-step]').forEach(el=>{
+    const step = el.closest('.timeline-item')?.getAttribute('data-step') || '';
+    el.textContent = (i18n[lang].stepWord || 'STEP') + ' ' + step;
+  });
+}
+
+
+const menuIcon = document.getElementById('menuIcon');
+const phoneIcon = document.getElementById('phoneIcon');
+const languageIcon = document.getElementById('languageIcon');
+const profileIcon = document.getElementById('profileIcon');
+const backIcon = document.getElementById('backIcon');
+const menuDropdown = document.getElementById('menuDropdown');
+const phoneDropdown = document.getElementById('phoneDropdown');
+const languageDropdown = document.getElementById('languageDropdown');
+const profileDropdown = document.getElementById('profileDropdown');
+const overlay = document.getElementById('overlay');
+
+function closeAllDropdowns() {
+  menuDropdown.classList.remove('show');
+  phoneDropdown.classList.remove('show');
+  languageDropdown.classList.remove('show');
+  profileDropdown.classList.remove('show');
+  overlay.classList.remove('show');
+}
+
+menuIcon.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); menuDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+phoneIcon.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); phoneDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+languageIcon.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); languageDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+profileIcon.addEventListener('click', (e) => { e.stopPropagation(); closeAllDropdowns(); profileDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+backIcon.addEventListener('click', () => {});
+overlay.addEventListener('click', closeAllDropdowns);
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dropdown') &&
+      !e.target.closest('.menu-icon') &&
+      !e.target.closest('.phone-icon') &&
+      !e.target.closest('.language-icon') &&
+      !e.target.closest('.profile-icon')) {
+    closeAllDropdowns();
+  }
+});
+
+
+document.querySelectorAll('.language-dropdown .language-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    lang = item.getAttribute('data-lang') || 'pl';
+    localStorage.setItem('lang', lang);
+    applyI18n();
+    closeAllDropdowns();
+  });
+});
+
+
+document.querySelectorAll('.menu-dropdown .dropdown-item').forEach(item => {
+  item.addEventListener('click', () => { closeAllDropdowns(); });
+});
+document.querySelectorAll('.phone-dropdown .dropdown-item').forEach(item => {
+  item.addEventListener('click', () => { closeAllDropdowns(); });
+});
+document.querySelectorAll('.dropdown').forEach(dropdown => dropdown.addEventListener('click', e=>e.stopPropagation()));
+
+
+const timelineItems = document.querySelectorAll('.timeline-item');
+const congratulations = document.getElementById('congratulations');
+const scrollIndicator = document.getElementById('scrollIndicator');
+const timelineProgress = document.getElementById('timelineProgress');
+let visibleSteps = new Set();
+
+function isInViewport(element, offset = 100) {
+  const rect = element.getBoundingClientRect();
+  return (rect.top >= -offset &&
+    rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + offset &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth));
+}
+
+function updateTimelineProgress() {
+  const container = document.querySelector('.timeline-container');
+  const containerRect = container.getBoundingClientRect();
+  const windowHeight = window.innerHeight;
+  let progress = 0;
+  if (containerRect.top < windowHeight && containerRect.bottom > 0) {
+      const visibleTop = Math.max(0, windowHeight - containerRect.top);
+      const visibleHeight = Math.min(containerRect.height, visibleTop);
+      progress = Math.min(100, (visibleHeight / containerRect.height) * 120);
+  }
+  timelineProgress.style.height = progress + '%';
+}
+
+function handleScrollAnimations() {
+  updateTimelineProgress();
+  timelineItems.forEach((item, index) => {
+      if (isInViewport(item, 50) && !visibleSteps.has(index)) {
+          setTimeout(() => { item.classList.add('show'); }, index * 200);
+          visibleSteps.add(index);
+      }
+  });
+  if (isInViewport(timelineItems[timelineItems.length - 1], -100)) {
+      setTimeout(() => {
+          congratulations.classList.add('show');
+          scrollIndicator.classList.add('hide');
+      }, 800);
+  }
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+          const index = Array.from(timelineItems).indexOf(entry.target);
+          if (!visibleSteps.has(index)) {
+              setTimeout(() => { entry.target.classList.add('show'); }, index * 300);
+              visibleSteps.add(index);
+          }
+      }
+  });
+}, { threshold: 0.3, rootMargin: '50px' });
+
+timelineItems.forEach(item => observer.observe(item));
+observer.observe(congratulations);
+
+window.addEventListener('scroll', () => {
+  updateTimelineProgress();
+  if (window.scrollY > 100) { scrollIndicator.classList.add('hide'); }
+});
+
+handleScrollAnimations();
+setTimeout(() => {
+  if (timelineItems.length > 0 && isInViewport(timelineItems[0], 200)) {
+      timelineItems[0].classList.add('show');
+      visibleSteps.add(0);
+  }
+}, 500);
+
+
+document.getElementById('knowledgeBaseLink').addEventListener('click', ()=>{});
+
+
+applyI18n();
+    </script>
+</body>
+</html>

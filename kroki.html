@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="title">Baza Wiedzy - Aplikacja dla Imigrantów</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fff;color:#666;min-height:100vh;display:flex;flex-direction:column}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;position:relative;z-index:1000;border-bottom:1px solid #f0f0f0}
+    .left-icons{display:flex;gap:15px;align-items:center}
+    .menu-icon,.phone-icon,.language-icon,.back-icon{width:24px;height:24px;cursor:pointer;transition:transform .2s}
+    .menu-icon:hover,.phone-icon:hover,.language-icon:hover,.back-icon:hover{transform:scale(1.1)}
+    .dropdown{position:absolute;top:50px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:none;min-width:200px;z-index:1001}
+    .dropdown.show{display:block}
+    .menu-dropdown{left:0}.phone-dropdown{left:45px}.language-dropdown{right:0;min-width:150px}
+    .dropdown-item{padding:12px 16px;cursor:pointer;transition:background-color .2s;border-bottom:1px solid #f0f0f0}
+    .dropdown-item:last-child{border-bottom:none}
+    .dropdown-item:hover{background:#f8f8f8}
+    .dropdown-item.phone-item{display:flex;justify-content:space-between;align-items:center}
+    .dropdown-item.phone-item .phone-number{color:#ff6b35;font-weight:700}
+    .dropdown-item.language-item{display:flex;align-items:center;gap:8px}
+    .flag-emoji{font-size:18px}
+    .main-content{flex:1;padding:20px;max-width:800px;margin:0 auto;width:100%}
+    .page-title{text-align:center;font-size:24px;color:#ff6b35;margin-bottom:10px;font-weight:700}
+    .breadcrumb{text-align:center;font-size:14px;color:#999;margin-bottom:30px}
+    .breadcrumb-item{cursor:pointer;color:#ff6b35;text-decoration:underline}
+    .categories-container{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:20px}
+    .category-tile{background:#fff;border:2px solid #f0f0f0;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.05);min-height:120px;display:flex;align-items:center;justify-content:center}
+    .category-tile:hover{border-color:#ff6b35;box-shadow:0 4px 15px rgba(255,107,53,.2);transform:translateY(-2px)}
+    .category-title{font-size:16px;color:#333;font-weight:600;line-height:1.3}
+    .faq-container{display:none;background:#fff;border-radius:12px;padding:25px;box-shadow:0 2px 15px rgba(0,0,0,.1)}
+    .faq-container.show{display:block}
+    .faq-category-title{font-size:20px;color:#ff6b35;margin-bottom:20px;font-weight:700;text-align:center}
+    .faq-item{border-bottom:1px solid #f0f0f0;margin-bottom:15px}
+    .faq-item:last-child{border-bottom:none;margin-bottom:0}
+    .faq-question{background:#f8f8f8;padding:15px;cursor:pointer;border-radius:8px;transition:all .3s;font-weight:600;color:#333;display:flex;justify-content:space-between;align-items:center}
+    .faq-question:hover{background:#f0f0f0}
+    .faq-question.active{background:#ff6b35;color:#fff}
+    .faq-icon{font-size:18px;transition:transform .3s}
+    .faq-question.active .faq-icon{transform:rotate(180deg)}
+    .faq-answer{max-height:0;overflow:hidden;transition:all .3s;background:#fff}
+    .faq-answer.show{max-height:220px;padding:15px;border-left:3px solid #ff6b35;margin-top:5px}
+    .faq-answer-text{color:#666;line-height:1.6}
+    .back-to-categories{display:none;background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;padding:12px 25px;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 2px 10px rgba(255,107,53,.3);margin-bottom:20px}
+    .back-to-categories:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(255,107,53,.4)}
+    .back-to-categories.show{display:inline-block}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);display:none;z-index:999}
+    .overlay.show{display:block}
+    @media (max-width:600px){
+      .categories-container{grid-template-columns:1fr}
+      .main-content{padding:15px}
+      .page-title{font-size:20px}
+      .category-tile{padding:15px;min-height:100px}
+      .category-title{font-size:14px}
+      .faq-question{padding:12px;font-size:14px}
+      .faq-answer.show{max-height:300px;padding:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <header class="header">
+    <div class="left-icons">
+      <a aria-label='Back' href='/'>
+        <svg class="back-icon" id="backIcon" viewBox="0 0 24 24" fill="#ff6b35">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+      </a>
+
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <div class="dropdown-item" data-link="tablica.html" data-i18n="menu.board">Tablica ogłoszeń</div>
+        <div class="dropdown-item" data-link="pomoc.html" data-i18n="menu.help">Pomoc</div>
+      </div>
+
+      <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item">
+          <span data-i18n="phone.police">Policja</span>
+          <span class="phone-number">997</span>
+        </div>
+        <div class="dropdown-item phone-item">
+          <span data-i18n="phone.cityOffice">Urząd Miasta</span>
+          <span class="phone-number">24 367 15 00</span>
+        </div>
+        <div class="dropdown-item phone-item">
+          <span data-i18n="phone.cityGuard">Straż Miejska</span>
+          <span class="phone-number">24 367 15 86</span>
+        </div>
+        <div class="dropdown-item phone-item">
+          <span data-i18n="phone.immigrantCenter">Ośrodek dla Imigrantów</span>
+          <span class="phone-number">24 367 16 50</span>
+        </div>
+      </div>
+    </div>
+
+    <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35" aria-label="Language">
+      <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+    </svg>
+
+    <div class="dropdown language-dropdown" id="languageDropdown">
+      <div class="dropdown-item language-item" data-lang="pl"><span class="flag-emoji">🇵🇱</span><span>Polski</span></div>
+      <div class="dropdown-item language-item" data-lang="en"><span class="flag-emoji">🇬🇧</span><span>English</span></div>
+      <div class="dropdown-item language-item" data-lang="ru"><span class="flag-emoji">🇷🇺</span><span>Русский</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="page-title" data-i18n="pageTitle">BAZA WIEDZY</h1>
+    <div class="breadcrumb" id="breadcrumb"></div>
+
+    <button class="back-to-categories" id="backToCategories" data-i18n="backToCategories">← Powrót do kategorii</button>
+
+    <div class="categories-container" id="categoriesContainer">
+      <div class="category-tile" data-category="legalizacja"><div class="category-title" data-i18n="cat.legal">LEGALIZACJA POBYTU</div></div>
+      <div class="category-tile" data-category="praca"><div class="category-title" data-i18n="cat.work">PRACA I ZATRUDNIENIE</div></div>
+      <div class="category-tile" data-category="edukacja"><div class="category-title" data-i18n="cat.edu">EDUKACJA I SZKOŁY</div></div>
+      <div class="category-tile" data-category="zdrowie"><div class="category-title" data-i18n="cat.health">ZDROWIE I OPIEKA MEDYCZNA</div></div>
+      <div class="category-tile" data-category="mieszkanie"><div class="category-title" data-i18n="cat.housing">MIESZKANIE I ZAKWATEROWANIE</div></div>
+      <div class="category-tile" data-category="transport"><div class="category-title" data-i18n="cat.transport">TRANSPORT I KOMUNIKACJA</div></div>
+    </div>
+
+    <div class="faq-container" id="faqContainer">
+      <div class="faq-category-title" id="faqCategoryTitle"></div>
+      <div id="faqList"></div>
+    </div>
+  </main>
+
+  <script>
+    
+    const i18n = {
+      pl: {
+        title: "FAQ - Aplikacja dla Imigrantów",
+        pageTitle: "FAQ",
+        backToCategories: "← Powrót do kategorii",
+        breadcrumbHome: "FAQ",
+        menu: { board: "Tablica ogłoszeń", help: "Pomoc" },
+        phone: { police: "Policja", cityOffice: "Urząd Miasta", cityGuard: "Straż Miejska", immigrantCenter: "Ośrodek dla Imigrantów" },
+        cat: {
+          legal: "LEGALIZACJA POBYTU",
+          work: "PRACA I ZATRUDNIENIE",
+          edu: "EDUKACJA I SZKOŁY",
+          health: "ZDROWIE I OPIEKA MEDYCZNA",
+          housing: "MIESZKANIE I ZAKWATEROWANIE",
+          transport: "TRANSPORT I KOMUNIKACJA"
+        },
+        kb: {
+          legalizacja: {
+            title: "LEGALIZACJA POBYTU",
+            q: [
+              ["Jak zarejestrować pobyt w Polsce?",
+               "Udaj się do Urzędu Wojewódzkiego i złóż wniosek o pobyt czasowy lub stały. Przygotuj dokument tożsamości, potwierdzenie zamieszkania i źródło utrzymania."],
+              ["Czy muszę meldować się w Płocku?",
+               "Tak, jeśli przebywasz ponad 30 dni. Meldunku dokonasz w Urzędzie Miasta Płocka."],
+              ["Jak uzyskać PESEL jako cudzoziemiec?",
+               "PESEL otrzymasz przy meldunku. Bez meldunku złóż wniosek w urzędzie z uzasadnieniem."]
+            ]
+          },
+          praca: {
+            title: "PRACA I ZATRUDNIENIE",
+            q: [
+              ["Czy mogę pracować w Polsce jako imigrant?",
+               "Tak, ale czasem wymagane jest zezwolenie na pracę lub oświadczenie pracodawcy."],
+              ["Gdzie szukać pracy w Płocku?",
+               "Portale: praca.pl, OLX, oraz Powiatowy Urząd Pracy w Płocku."],
+              ["Czy muszę znać polski, żeby pracować?",
+               "Nie zawsze, ale znajomość języka zwiększa szanse i zarobki."]
+            ]
+          },
+          edukacja: {
+            title: "EDUKACJA I SZKOŁY",
+            q: [
+              ["Jak zapisać dziecko do szkoły?",
+               "Udaj się do najbliższej szkoły z dokumentami dziecka (akt urodzenia, paszport, adres)."],
+              ["Czy są bezpłatne kursy polskiego?",
+               "Tak – MOPS, NGO oraz niektóre szkoły je organizują."],
+              ["Czy cudzoziemcy mogą studiować w Płocku?",
+               "Tak, np. PW filia lub PWSZ. Część kierunków po angielsku."]
+            ]
+          },
+          zdrowie: {
+            title: "ZDROWIE I OPIEKA MEDYCZNA",
+            q: [
+              ["Jak zapisać się do lekarza rodzinnego?",
+               "W przychodni złóż deklarację wyboru lekarza (potrzebny dokument i PESEL)."],
+              ["Czy imigranci mają prawo do opieki?",
+               "Tak, jeśli są ubezpieczeni (np. ZUS/pracodawca) lub mają EKUZ."],
+              ["Gdzie po pomoc po godzinach?",
+               "Nocna i Świąteczna Opieka przy Wojewódzkim Szpitalu Zespolonym."]
+            ]
+          },
+          mieszkanie: {
+            title: "MIESZKANIE I ZAKWATEROWANIE",
+            q: [
+              ["Jak znaleźć mieszkanie?",
+               "Portale OLX, Otodom, Facebook Marketplace albo biura nieruchomości."],
+              ["Czy muszę podpisać umowę najmu?",
+               "Tak – to bezpieczeństwo obu stron."],
+              ["Czy można uzyskać wsparcie?",
+               "MOPS i część NGO wspierają w zakwaterowaniu."]
+            ]
+          },
+          transport: {
+            title: "TRANSPORT I KOMUNIKACJA",
+            q: [
+              ["Jak działa komunikacja miejska?",
+               "Operatorem jest KM-Płock. Bilety w automatach, kioskach i aplikacjach."],
+              ["Czy są zniżki?",
+               "Tak – dla dzieci, studentów, seniorów, osób z niepełnosprawnością."],
+              ["Jak wyrobić kartę miejską?",
+               "W POK KM-Płock, ul. Jachowicza 49 (zdjęcie + dokument)."]
+            ]
+          }
+        }
+      },
+
+      en: {
+        title: "FAQ - Immigrants App",
+        pageTitle: "FAQ",
+        backToCategories: "← Back to categories",
+        breadcrumbHome: "FAQ",
+        menu: { board: "Notice board", help: "Help" },
+        phone: { police: "Police", cityOffice: "City Office", cityGuard: "City Guard", immigrantCenter: "Immigrant Center" },
+        cat: {
+          legal: "RESIDENCE LEGALIZATION",
+          work: "WORK & EMPLOYMENT",
+          edu: "EDUCATION & SCHOOLS",
+          health: "HEALTHCARE",
+          housing: "HOUSING & ACCOMMODATION",
+          transport: "TRANSPORT & COMMUTING"
+        },
+        kb: {
+          legalizacja: {
+            title: "RESIDENCE LEGALIZATION",
+            q: [
+              ["How to register your stay?",
+               "Go to the Voivodeship Office and apply for temporary or permanent stay. Bring ID, proof of address and income."],
+              ["Do I need to register address in Płock?",
+               "Yes, if you stay longer than 30 days. Do it at the City Office."],
+              ["How to get a PESEL number?",
+               "You get it when registering address; otherwise apply with justification at the office."]
+            ]
+          },
+          praca: {
+            title: "WORK & EMPLOYMENT",
+            q: [
+              ["Can I work in Poland?",
+               "Yes, but depending on citizenship you may need a work permit or employer’s declaration."],
+              ["Where to find jobs in Płock?",
+               "Job portals (praca.pl, OLX) and the local Labour Office."],
+              ["Do I need Polish language?",
+               "Not always, but it significantly improves your chances and salary."]
+            ]
+          },
+          edukacja: {
+            title: "EDUCATION & SCHOOLS",
+            q: [
+              ["How to enroll a child at school?",
+               "Go to the nearest primary school with the child’s documents (birth certificate, passport, address)."],
+              ["Are there free Polish courses?",
+               "Yes – provided by social services, NGOs and some schools."],
+              ["Can foreigners study in Płock?",
+               "Yes, e.g., Warsaw University of Technology branch or State University; some programmes in English."]
+            ]
+          },
+          zdrowie: {
+            title: "HEALTHCARE",
+            q: [
+              ["How to choose a family doctor?",
+               "Visit a clinic and submit a declaration (ID + PESEL)."],
+              ["Do immigrants have the right to care?",
+               "Yes if insured (employer/ZUS) or with EHIC."],
+              ["Where to get help after hours?",
+               "Night and Holiday Care at the Provincial Hospital."]
+            ]
+          },
+          mieszkanie: {
+            title: "HOUSING & ACCOMMODATION",
+            q: [
+              ["How to find a flat?",
+               "Use OLX, Otodom, Facebook Marketplace, or real-estate agencies."],
+              ["Do I need a rental agreement?",
+               "Yes – it protects both parties."],
+              ["Any support available?",
+               "Social services and NGOs can help with accommodation."]
+            ]
+          },
+          transport: {
+            title: "TRANSPORT & COMMUTING",
+            q: [
+              ["How does public transport work?",
+               "Operator: KM-Płock; tickets in machines, kiosks and apps."],
+              ["Are there discounts?",
+               "Yes for kids, students, seniors and people with disabilities."],
+              ["How to get a city card?",
+               "Customer Service point, Jachowicza 49. Bring photo and ID."]
+            ]
+          }
+        }
+      },
+
+      ru: {
+        title: "FAQ — Приложение для иммигрантов",
+        pageTitle: "FAQ",
+        backToCategories: "← Назад к категориям",
+        breadcrumbHome: "FAQ",
+        menu: { board: "Доска объявлений", help: "Помощь" },
+        phone: { police: "Полиция", cityOffice: "Городская управа", cityGuard: "Муниципальная стража", immigrantCenter: "Центр для иммигрантов" },
+        cat: {
+          legal: "ЛЕГАЛИЗАЦИЯ ПРЕБЫВАНИЯ",
+          work: "РАБОТА И ТРУДОУСТРОЙСТВО",
+          edu: "ОБРАЗОВАНИЕ И ШКОЛЫ",
+          health: "ЗДРАВООХРАНЕНИЕ",
+          housing: "ЖИЛЬЁ И ПРОЖИВАНИЕ",
+          transport: "ТРАНСПОРТ И СООБЩЕНИЕ"
+        },
+        kb: {
+          legalizacja: {
+            title: "ЛЕГАЛИЗАЦИЯ ПРЕБЫВАНИЯ",
+            q: [
+              ["Как зарегистрировать пребывание?",
+               "Обратитесь в воеводское управление и подайте на временный/постоянный вид на жительство. Нужны удостоверение личности, подтверждение адреса и дохода."],
+              ["Нужна ли регистрация в Плоцке?",
+               "Да, если вы находитесь более 30 дней. Регистрация в городской управе."],
+              ["Как получить номер PESEL?",
+               "Обычно при регистрации адреса; без неё подайте заявление с обоснованием."]
+            ]
+          },
+          praca: {
+            title: "РАБОТА И ТРУДОУСТРОЙСТВО",
+            q: [
+              ["Могу ли я работать в Польше?",
+               "Да, но для некоторых граждан требуется разрешение на работу или заявление работодателя."],
+              ["Где искать работу в Плоцке?",
+               "Порталы praca.pl, OLX и Повятовый центр занятости."],
+              ["Нужен ли польский язык?",
+               "Не всегда, но знание языка сильно повышает шансы и зарплату."]
+            ]
+          },
+          edukacja: {
+            title: "ОБРАЗОВАНИЕ И ШКОЛЫ",
+            q: [
+              ["Как записать ребёнка в школу?",
+               "Придите в ближайшую школу с документами ребёнка (свидетельство о рождении, паспорт, адрес)."],
+              ["Есть ли бесплатные курсы польского?",
+               "Да — их проводят MOPS, НКО и некоторые школы."],
+              ["Могут ли иностранцы учиться в Плоцке?",
+               "Да, например, филиал Политехники Варшавской или гос. университет; часть программ на английском."]
+            ]
+          },
+          zdrowie: {
+            title: "ЗДРАВООХРАНЕНИЕ",
+            q: [
+              ["Как выбрать семейного врача?",
+               "В поликлинике подайте декларацию (нужны документ и PESEL)."],
+              ["Есть ли у иммигрантов право на медпомощь?",
+               "Да при наличии страховки (работодатель/ЗУС) или карты EHIC."],
+              ["Куда обращаться после рабочих часов?",
+               "Ночная и праздничная помощь при воеводской больнице."]
+            ]
+          },
+          mieszkanie: {
+            title: "ЖИЛЬЁ И ПРОЖИВАНИЕ",
+            q: [
+              ["Как найти жильё?",
+               "OLX, Otodom, Facebook Marketplace или агентства недвижимости."],
+              ["Нужен ли договор аренды?",
+               "Да — это ваша безопасность."],
+              ["Можно ли получить помощь?",
+               "MOPS и некоторые НКО помогают с жильём."]
+            ]
+          },
+          transport: {
+            title: "ТРАНСПОРТ И СООБЩЕНИЕ",
+            q: [
+              ["Как работает городской транспорт?",
+               "Оператор KM-Płock; билеты в автоматах, киосках и приложениях."],
+              ["Есть ли скидки?",
+               "Да — для детей, студентов, пенсионеров и людей с инвалидностью."],
+              ["Как получить городскую карту?",
+               "Пункт обслуживания, ул. Яховича 49. Возьмите фото и документ."]
+            ]
+          }
+        }
+      }
+    };
+
+    
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const faqContainer = document.getElementById('faqContainer');
+    const faqCategoryTitle = document.getElementById('faqCategoryTitle');
+    const faqList = document.getElementById('faqList');
+    const breadcrumb = document.getElementById('breadcrumb');
+    const backToCategories = document.getElementById('backToCategories');
+
+    let currentCategory = null;
+    let lang = localStorage.getItem('lang') || 'pl';
+
+    
+    function getKB() { return i18n[lang].kb; }
+
+    
+    function applyStaticTexts() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const path = el.getAttribute('data-i18n').split('.');
+        let val = i18n[lang];
+        for (const p of path) val = val?.[p];
+        if (typeof val === 'string') el.textContent = val;
+      });
+      
+      const titleEl = document.querySelector('title[data-i18n="title"]');
+      if (titleEl) titleEl.textContent = i18n[lang].title;
+    }
+
+    
+    function showCategories() {
+      categoriesContainer.style.display = 'grid';
+      faqContainer.classList.remove('show');
+      backToCategories.classList.remove('show');
+      breadcrumb.style.display = 'none';
+      currentCategory = null;
+
+      
+      document.querySelector('[data-i18n="cat.legal"]').textContent = i18n[lang].cat.legal;
+      document.querySelector('[data-i18n="cat.work"]').textContent  = i18n[lang].cat.work;
+      document.querySelector('[data-i18n="cat.edu"]').textContent   = i18n[lang].cat.edu;
+      document.querySelector('[data-i18n="cat.health"]').textContent= i18n[lang].cat.health;
+      document.querySelector('[data-i18n="cat.housing"]').textContent=i18n[lang].cat.housing;
+      document.querySelector('[data-i18n="cat.transport"]').textContent=i18n[lang].cat.transport;
+    }
+
+    
+    function showFAQ(categoryKey) {
+      const kb = getKB();
+      const category = kb[categoryKey];
+      if (!category) return;
+
+      currentCategory = categoryKey;
+      categoriesContainer.style.display = 'none';
+      faqContainer.classList.add('show');
+      backToCategories.classList.add('show');
+
+      breadcrumb.style.display = 'block';
+      breadcrumb.innerHTML = `<span class="breadcrumb-item" onclick="showCategories()">${i18n[lang].breadcrumbHome}</span> > ${category.title}`;
+
+      faqCategoryTitle.textContent = category.title;
+
+      faqList.innerHTML = '';
+      category.q.forEach((pair, idx) => {
+        const [question, answer] = pair;
+        const item = document.createElement('div');
+        item.className = 'faq-item';
+        item.innerHTML = `
+          <div class="faq-question" data-index="${idx}">
+            <span>${question}</span><span class="faq-icon">▼</span>
+          </div>
+          <div class="faq-answer" data-index="${idx}">
+            <div class="faq-answer-text">${answer}</div>
+          </div>`;
+        faqList.appendChild(item);
+      });
+
+      document.querySelectorAll('.faq-question').forEach(q =>
+        q.addEventListener('click', () => toggleAnswer(q.dataset.index)));
+    }
+
+    function toggleAnswer(index) {
+      const q = document.querySelector(`.faq-question[data-index="${index}"]`);
+      const a = document.querySelector(`.faq-answer[data-index="${index}"]`);
+      document.querySelectorAll('.faq-question').forEach(x => { if (x !== q) x.classList.remove('active'); });
+      document.querySelectorAll('.faq-answer').forEach(x => { if (x !== a) x.classList.remove('show'); });
+      q.classList.toggle('active');
+      a.classList.toggle('show');
+    }
+
+    
+   
+    document.querySelectorAll('.category-tile').forEach(tile =>
+      tile.addEventListener('click', () => showFAQ(tile.dataset.category)));
+
+    backToCategories.addEventListener('click', showCategories);
+
+    document.getElementById('backIcon').addEventListener('click', e => {
+      if (currentCategory) { e.preventDefault(); showCategories(); }
+    });
+
+    
+    const menuIcon = document.getElementById('menuIcon');
+    const phoneIcon = document.getElementById('phoneIcon');
+    const languageIcon = document.getElementById('languageIcon');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const phoneDropdown = document.getElementById('phoneDropdown');
+    const languageDropdown = document.getElementById('languageDropdown');
+    const overlay = document.getElementById('overlay');
+
+    function closeAllDropdowns(){
+      menuDropdown.classList.remove('show');
+      phoneDropdown.classList.remove('show');
+      languageDropdown.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+    menuIcon.addEventListener('click', e => { e.stopPropagation(); closeAllDropdowns(); menuDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    phoneIcon.addEventListener('click', e => { e.stopPropagation(); closeAllDropdowns(); phoneDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    languageIcon.addEventListener('click', e => { e.stopPropagation(); closeAllDropdowns(); languageDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+    overlay.addEventListener('click', closeAllDropdowns);
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.dropdown') && !e.target.closest('.menu-icon') && !e.target.closest('.phone-icon') && !e.target.closest('.language-icon')) closeAllDropdowns();
+    });
+    document.querySelectorAll('.menu-dropdown .dropdown-item').forEach(item => {
+      item.addEventListener('click', () => { const link = item.getAttribute('data-link'); if (link) location.href = link; closeAllDropdowns(); });
+    });
+    document.querySelectorAll('.phone-dropdown .dropdown-item').forEach(item => {
+      item.addEventListener('click', () => { const n = item.querySelector('.phone-number').textContent; console.log('Dial:', n); closeAllDropdowns(); });
+    });
+
+    
+    document.querySelectorAll('.language-dropdown .language-item').forEach(item => {
+      item.addEventListener('click', () => {
+        lang = item.getAttribute('data-lang');
+        localStorage.setItem('lang', lang);
+        applyStaticTexts();
+        
+        currentCategory ? showFAQ(currentCategory) : showCategories();
+        closeAllDropdowns();
+      });
+    });
+
+    
+    applyStaticTexts();
+    showCategories();
+  </script>
+</body>
+</html>

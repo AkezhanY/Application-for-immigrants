@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="headTitle">Logowanie - Aplikacja dla Imigrantów</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fff;color:#666;min-height:100vh;display:flex;flex-direction:column}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;position:relative;z-index:1000;border-bottom:1px solid #f0f0f0}
+    .left-icons,.right-icons{display:flex;gap:15px;align-items:center}
+    .menu-icon,.phone-icon,.language-icon,.profile-icon,.back-icon{width:24px;height:24px;cursor:pointer;transition:transform .2s ease}
+    .menu-icon:hover,.phone-icon:hover,.language-icon:hover,.profile-icon:hover,.back-icon:hover{transform:scale(1.1)}
+    .dropdown{position:absolute;top:50px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:none;min-width:200px;z-index:1001}
+    .dropdown.show{display:block}
+    .menu-dropdown{left:0}
+    .phone-dropdown{left:45px}
+    .language-dropdown{right:0;min-width:170px}
+    .profile-dropdown{right:45px;min-width:220px}
+    .dropdown-item{padding:12px 16px;cursor:pointer;transition:background-color .2s ease;border-bottom:1px solid #f0f0f0}
+    .dropdown-item:last-child{border-bottom:none}
+    .dropdown-item:hover{background:#f8f8f8}
+    .dropdown-item.phone-item{display:flex;align-items:center}
+    
+    .dropdown-item.phone-item span:first-child{flex:1}
+    .phone-number{margin-left:16px;white-space:nowrap;color:#ff6b35;font-weight:bold;text-align:right}
+    .dropdown-item.language-item{display:flex;align-items:center;gap:8px}
+    .flag-emoji{font-size:18px}
+    .dropdown-header{padding:10px 16px;background:#f8f8f8;border-bottom:1px solid #e0e0e0;border-top-left-radius:8px;border-top-right-radius:8px}
+    .status-badge{font-size:14px;font-weight:700;display:block}
+    .status-guest{color:#2e7d32}
+    .status-unverified{color:#2e7d32} 
+    .status-verified{color:#2e7d32}
+    .profile-item{font-weight:500;color:#333;text-decoration:none;display:block}
+    .profile-item.logout{color:#dc3545;font-weight:600}
+    .dropdown-divider{height:1px;background:#e0e0e0;margin:5px 0}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.05);display:none;z-index:100}
+    .overlay.show{display:block}
+    .login-container{background:#fff;padding:40px 30px;border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,.1);width:320px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+    h1{color:#ff6b35;text-align:center;margin-bottom:30px;font-weight:700;font-size:24px}
+    input[type=email],input[type=password]{width:100%;padding:12px 15px;margin-bottom:20px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;color:#666;transition:border-color .3s ease,box-shadow .3s ease}
+    input[type=email]:focus,input[type=password]:focus{outline:none;border-color:#ff6b35;box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+    button{width:100%;background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;padding:15px 0;border-radius:25px;font-size:18px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 4px 15px rgba(255,107,53,.3);transition:all .3s ease}
+    button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,53,.4)}
+    button:active{transform:translateY(0)}
+    .register-button{width:100%;background:linear-gradient(135deg,#42a5f5,#2c6c8c);color:#fff;border:none;padding:15px 0;border-radius:25px;font-size:18px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 4px 15px rgba(66,165,245,.3);transition:all .3s ease;margin-top:10px}
+    .register-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(66,165,245,.4)}
+    .dropdown a.dropdown-item,.dropdown a.dropdown-item:link,.dropdown a.dropdown-item:visited{display:block;color:#666;text-decoration:none}
+    .dropdown a.dropdown-item:hover,.dropdown a.dropdown-item:focus{background:#f8f8f8;color:#666;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <header class="header">
+    <div class="left-icons">
+      <a href="index.html" aria-label="Back">
+        <svg class="back-icon" id="backIcon" viewBox="0 0 24 24" fill="#ff6b35" aria-hidden="true">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+      </a>
+
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666" aria-label="Menu">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35" aria-label="Phone numbers">
+        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <a class="dropdown-item" href="pierwszeun.html" data-i18n="menu.firstSteps">PIERWSZE KROKI</a>
+        <a class="dropdown-item" href="bazawiedzyun.html" data-i18n="menu.knowledge">BAZA WIEDZY</a>
+        <a class="dropdown-item" href="pomocun.html" data-i18n="menu.help">POMOC</a>
+      </div>
+
+      <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item"><span data-i18n="phone.police">Policja</span><span class="phone-number">997</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.cityOffice">Urząd Miasta</span><span class="phone-number">24 367 15 00</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.cityGuard">Straż Miejska</span><span class="phone-number">24 367 15 86</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.immigrantCenter">Ośrodek dla Imigrantów</span><span class="phone-number">24 367 16 50</span></div>
+      </div>
+    </div>
+
+    <div class="right-icons">
+      <svg class="profile-icon" id="profileIcon" viewBox="0 0 24 24" fill="#ff6b35" aria-label="Profile">
+        <circle cx="12" cy="12" r="10" stroke="#ff6b35" stroke-width="2" fill="white"/>
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#ff6b35"/>
+        <circle cx="18" cy="6" r="3" fill="#4CAF50"/>
+        <path d="M16.5 6.5l.7.7 1.3-1.3" stroke="white" stroke-width="1" fill="none"/>
+      </svg>
+
+      <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35" aria-label="Language">
+        <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+      </svg>
+
+      <div class="dropdown profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+          <span id="statusBadge" class="status-badge status-guest">❌ Niezwerfikowany</span>
+        </div>
+        <a href="profilun.html" class="dropdown-item profile-item" data-i18n="profile.profile">Profil</a>
+        <a href="ankietaun.html" class="dropdown-item profile-item" data-i18n="profile.extraData">Dane dodatkowe</a>
+        <div class="dropdown-divider"></div>
+        <a href="login.html" id="authAction" class="dropdown-item profile-item logout" data-i18n="profile.login">Zaloguj</a>
+      </div>
+
+      <div class="dropdown language-dropdown" id="languageDropdown">
+        <div class="dropdown-item language-item" data-lang="pl"><span class="flag-emoji">🇵🇱</span><span>Polski</span></div>
+        <div class="dropdown-item language-item" data-lang="en"><span class="flag-emoji">🇬🇧</span><span>English</span></div>
+        <div class="dropdown-item language-item" data-lang="ru"><span class="flag-emoji">🇷🇺</span><span>Русский</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="login-container">
+      <h1 data-i18n="login.title">Logowanie</h1>
+      <form id="loginForm" action="indexin.html" method="get">
+        <input type="email" id="email" data-i18n-placeholder="login.email" placeholder="Email" required />
+        <input type="password" id="password" data-i18n-placeholder="login.password" placeholder="Hasło" required />
+        <button type="submit" data-i18n="login.signIn">Zaloguj się</button>
+      </form>
+      <button type="button" class="register-button" id="registerButton" data-i18n="login.register">Zarejestruj się</button>
+    </div>
+  </main>
+
+  <script>
+
+const i18n = {
+  pl: {
+    headTitle: "Logowanie - Aplikacja dla Imigrantów",
+    menu: { firstSteps: "PIERWSZE KROKI", knowledge: "BAZA WIEDZY", help: "POMOC" },
+    phone: { police: "Policja", cityOffice: "Urząd Miasta", cityGuard: "Straż Miejska", immigrantCenter: "Ośrodek dla Imigrantów" },
+    profile: {
+      statusGuest: "❌ Niezwerfikowany",
+      statusUnverified: "❌ Niezwerfikowany",
+      statusVerified: "✓ ZWERYFIKOWANY",
+      profile: "Profil", extraData: "Dane dodatkowe",
+      login: "Zaloguj", logout: "WYLOGUJ"
+    },
+    login: { title: "Logowanie", email: "Email", password: "Hasło", signIn: "Zaloguj się", register: "Zarejestruj się" },
+    alerts: { fillBoth: "Wprowadź email i hasło", emailInvalid: "Nieprawidłowy email", passwordInvalid: "Nieprawidłowe hasło", registered: "Konto zarejestrowane! Zaloguj się!", exists: "Konto już istnieje. Zaloguj się!" }
+  },
+  en: {
+    headTitle: "Login - Immigrants App",
+    menu: { firstSteps: "FIRST STEPS", knowledge: "KNOWLEDGE BASE", help: "HELP" },
+    phone: { police: "Police", cityOffice: "City Office", cityGuard: "City Guard", immigrantCenter: "Immigrant Center" },
+    profile: {
+      statusGuest: "Guest",
+      statusUnverified: "✗ UNVERIFIED",
+      statusVerified: "✓ VERIFIED",
+      profile: "Profile", extraData: "Additional data",
+      login: "Log in", logout: "Log out"
+    },
+    login: { title: "Sign in", email: "Email", password: "Password", signIn: "Sign in", register: "Register" },
+    alerts: { fillBoth: "Please enter email and password", emailInvalid: "Invalid email", passwordInvalid: "Incorrect password", registered: "Account registered! Please sign in.", exists: "Account already exists. Please sign in." }
+  },
+  ru: {
+    headTitle: "Вход — Приложение для иммигрантов",
+    menu: { firstSteps: "ПЕРВЫЕ ШАГИ", knowledge: "БАЗА ЗНАНИЙ", help: "ПОМОЩЬ" },
+    phone: { police: "Полиция", cityOffice: "Городская управа", cityGuard: "Муниципальная стража", immigrantCenter: "Центр для иммигрантов" },
+    profile: {
+      statusGuest: "Гость",
+      statusUnverified: "✗ НЕПОДТВЕРЖДЁН",
+      statusVerified: "✓ ПОДТВЕРЖДЕНО",
+      profile: "Профиль", extraData: "Дополнительные данные",
+      login: "Войти", logout: "Выйти"
+    },
+    login: { title: "Вход", email: "Email", password: "Пароль", signIn: "Войти", register: "Зарегистрироваться" },
+    alerts: { fillBoth: "Введите email и пароль", emailInvalid: "Неверный email", passwordInvalid: "Неверный пароль", registered: "Аккаунт зарегистрирован! Войдите.", exists: "Аккаунт уже существует. Войдите." }
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'pl';
+
+function t(path){
+  const parts = path.split('.');
+  let v = i18n[lang];
+  for (const p of parts) v = v?.[p];
+  return (typeof v === 'string') ? v : '';
+}
+
+function applyI18n(){
+  document.documentElement.lang = lang;
+  const titleEl = document.querySelector('title[data-i18n="headTitle"]');
+  if (titleEl) titleEl.textContent = t('headTitle') || titleEl.textContent;
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const txt = t(key);
+    if (txt) el.textContent = txt;
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-placeholder');
+    const txt = t(key);
+    if (txt) el.setAttribute('placeholder', txt);
+  });
+
+  setProfileMenuByAuth();
+}
+
+
+const menuIcon = document.getElementById('menuIcon');
+const phoneIcon = document.getElementById('phoneIcon');
+const languageIcon = document.getElementById('languageIcon');
+const profileIcon = document.getElementById('profileIcon');
+const backIcon = document.getElementById('backIcon');
+const menuDropdown = document.getElementById('menuDropdown');
+const phoneDropdown = document.getElementById('phoneDropdown');
+const languageDropdown = document.getElementById('languageDropdown');
+const profileDropdown = document.getElementById('profileDropdown');
+const overlay = document.getElementById('overlay');
+const statusBadge = document.getElementById('statusBadge');
+const authAction = document.getElementById('authAction');
+
+function closeAllDropdowns(){
+  menuDropdown.classList.remove('show');
+  phoneDropdown.classList.remove('show');
+  languageDropdown.classList.remove('show');
+  profileDropdown.classList.remove('show');
+  overlay.classList.remove('show');
+}
+
+menuIcon.addEventListener('click', e=>{ e.stopPropagation(); closeAllDropdowns(); menuDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+phoneIcon.addEventListener('click', e=>{ e.stopPropagation(); closeAllDropdowns(); phoneDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+languageIcon.addEventListener('click', e=>{ e.stopPropagation(); closeAllDropdowns(); languageDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+profileIcon.addEventListener('click', e=>{ e.stopPropagation(); closeAllDropdowns(); profileDropdown.classList.toggle('show'); overlay.classList.toggle('show'); });
+backIcon.addEventListener('click', ()=>{});
+overlay.addEventListener('click', closeAllDropdowns);
+document.addEventListener('click', e=>{
+  if (!e.target.closest('.dropdown') && !e.target.closest('.menu-icon') && !e.target.closest('.phone-icon') && !e.target.closest('.language-icon') && !e.target.closest('.profile-icon')) closeAllDropdowns();
+});
+
+
+document.querySelectorAll('.language-dropdown .language-item').forEach(it=>{
+  it.addEventListener('click', ()=>{
+    lang = it.getAttribute('data-lang') || 'pl';
+    localStorage.setItem('lang', lang);
+    applyI18n();
+    closeAllDropdowns();
+  });
+});
+
+
+function isAuthed(){ return !!localStorage.getItem('authToken'); }
+function isVerified(){ return localStorage.getItem('verified') === 'true'; }
+
+function setProfileMenuByAuth(){
+  statusBadge.className = 'status-badge'; 
+
+  if (!isAuthed()){
+    statusBadge.classList.add('status-guest');
+    statusBadge.textContent = t('profile.statusGuest');
+    authAction.textContent = t('profile.login');
+    authAction.classList.add('logout');
+    authAction.setAttribute('href','login.html');
+    authAction.onclick = null;
+    return;
+  }
+
+  if (isVerified()){
+    statusBadge.classList.add('status-verified');
+    statusBadge.textContent = t('profile.statusVerified');
+  } else {
+    statusBadge.classList.add('status-unverified');
+    statusBadge.textContent = t('profile.statusUnverified');
+  }
+
+  authAction.textContent = t('profile.logout');
+  authAction.setAttribute('href','#');
+  authAction.onclick = (e)=>{ e.preventDefault(); localStorage.removeItem('authToken'); localStorage.removeItem('verified'); setProfileMenuByAuth(); };
+}
+
+
+const loginForm = document.getElementById('loginForm');
+loginForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  const existingUser = localStorage.getItem(email);
+  if (existingUser) {
+    const user = JSON.parse(existingUser);
+    if (user.password === password) {
+      localStorage.setItem('authToken','dummy-token');
+      
+      localStorage.setItem('verified','false');
+      setProfileMenuByAuth();
+      window.location.href = 'profil.html';
+    } else {
+      alert(i18n[lang].alerts.passwordInvalid);
+    }
+  } else {
+    alert(i18n[lang].alerts.emailInvalid);
+  }
+});
+
+const registerButton = document.getElementById('registerButton');
+registerButton.addEventListener('click', ()=>{
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) { alert(i18n[lang].alerts.fillBoth); return; }
+  const existingUser = localStorage.getItem(email);
+  if (existingUser) {
+    alert(i18n[lang].alerts.exists);
+  } else {
+    localStorage.setItem(email, JSON.stringify({ email, password }));
+    alert(i18n[lang].alerts.registered);
+  }
+});
+
+
+applyI18n();
+  </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Ankieta dla Imigrantów - Aplikacja Płock</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fff;color:#666;min-height:100vh;display:flex;flex-direction:column}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;position:relative;z-index:1000;border-bottom:1px solid #f0f0f0}
+    .left-icons,.right-icons{display:flex;gap:15px;align-items:center}
+    .menu-icon,.phone-icon,.language-icon,.profile-icon,.back-icon{width:24px;height:24px;cursor:pointer;transition:transform .2s ease}
+    .menu-icon:hover,.phone-icon:hover,.language-icon:hover,.profile-icon:hover,.back-icon:hover{transform:scale(1.1)}
+    .dropdown{position:absolute;top:50px;background:#fff;border:1px solid #e8e8e8;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.12);display:none;min-width:200px;z-index:1001;overflow:hidden}
+    .dropdown.show{display:block}
+    .menu-dropdown{left:0}
+    .phone-dropdown{left:45px}
+    .language-dropdown{right:0;min-width:150px}
+    .profile-dropdown{right:45px;min-width:200px}
+    .dropdown-header{padding:10px 16px;background:#fafafa;border-bottom:1px solid #eee}
+    .verified-badge{color:#2e7d32;font-size:14px;font-weight:600}
+    .dropdown-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid #f2f2f2;transition:background .2s ease;color:#444}
+    .dropdown-item:last-child{border-bottom:none}
+    .dropdown-item:hover{background:#f9f9f9}
+    .dropdown-item.phone-item{display:flex;justify-content:space-between;align-items:center}
+    .dropdown-item.phone-item .phone-number{color:#ff6b35;font-weight:600}
+    .dropdown-item.language-item{display:flex;align-items:center;gap:8px}
+    .profile-item.logout{color:#e53935;font-weight:500}
+    .flag-emoji{font-size:18px}
+
+    .main-content{flex:1;padding:20px;max-width:700px;margin:0 auto;width:100%}
+    .page-title{text-align:center;font-size:24px;color:#ff6b35;margin-bottom:15px;font-weight:700}
+    .page-subtitle{text-align:center;font-size:16px;color:#666;margin-bottom:30px;line-height:1.5}
+
+    .survey-form{background:#fff;border-radius:15px;padding:30px;box-shadow:0 8px 25px rgba(0,0,0,.1);border:2px solid #f0f0f0}
+    .progress-text{text-align:center;font-size:14px;color:#666;margin-bottom:10px}
+    .progress-bar{background:#f0f0f0;height:8px;border-radius:4px;margin-bottom:30px;overflow:hidden}
+    .progress-fill{background:linear-gradient(135deg,#ff6b35,#ff8c42);height:100%;border-radius:4px;transition:width .5s ease;width:0%}
+
+    .question-container{margin-bottom:30px;opacity:0;transform:translateY(20px);transition:all .5s ease}
+    .question-container.visible{opacity:1;transform:translateY(0)}
+    .question-number{background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-bottom:15px}
+    .question-title{font-size:18px;font-weight:600;color:#333;margin-bottom:15px;line-height:1.4}
+    .question-subtitle{font-size:14px;color:#999;margin-bottom:20px;font-style:italic}
+
+    .form-group{display:flex;flex-direction:column}
+    .form-input,.form-select{padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;color:#666;background:#fff;transition:all .3s ease}
+    .form-input:focus,.form-select:focus{outline:none;border-color:#ff6b35;box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+
+    .radio-group,.checkbox-group{display:flex;flex-direction:column;gap:12px}
+    .radio-option,.checkbox-option{display:flex;align-items:center;padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;transition:all .3s ease}
+    .radio-option:hover,.checkbox-option:hover{border-color:#ff6b35;background:#fff8f5}
+    .radio-option.selected,.checkbox-option.selected{border-color:#ff6b35;background:#fff8f5}
+    input[type="radio"],input[type="checkbox"]{margin-right:12px;accent-color:#ff6b35}
+    .radio-label,.checkbox-label{font-size:16px;color:#333;cursor:pointer}
+
+    .submit-button{background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;padding:15px 40px;border-radius:25px;font-size:18px;font-weight:700;cursor:pointer;transition:all .3s ease;box-shadow:0 4px 15px rgba(255,107,53,.3);text-transform:uppercase;letter-spacing:.5px;display:block;margin:30px auto 0;min-width:200px}
+    .submit-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,53,.4)}
+    .submit-button:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);display:none;z-index:999}
+    .overlay.show{display:block}
+
+    @media (max-width:600px){
+      .main-content{padding:15px}
+      .survey-form{padding:20px}
+      .page-title{font-size:20px}
+      .question-title{font-size:16px}
+      .form-input,.form-select{font-size:14px;padding:10px 12px}
+      .radio-option,.checkbox-option{padding:10px 12px}
+      .submit-button{font-size:16px;padding:12px 30px}
+    }
+
+    
+    .dropdown a,.profile-dropdown a,.menu-dropdown a,.language-dropdown a,.phone-dropdown a{text-decoration:none!important;color:#666!important;display:block}
+    .dropdown a:visited,.dropdown a:hover,.dropdown a:active{text-decoration:none!important;color:#666!important}
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <header class="header">
+    <div class="left-icons">
+      <a href="index.html" aria-label="Back">
+        <svg class="back-icon" id="backIcon" viewBox="0 0 24 24" fill="#ff6b35"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </a>
+
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <div class="dropdown-item" data-link="pierwsze.html" data-i18n="menuFirst">Pierwsze kroki</div>
+        <div class="dropdown-item" data-link="bazawiedzy.html" data-i18n="menuBase">Baza wiedzy</div>
+        <div class="dropdown-item" data-link="pomoc.html" data-i18n="menuHelp">Pomoc</div>
+      </div>
+
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item"><span data-i18n="police">Policja</span><span class="phone-number">997</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="cityOffice">Urząd Miasta</span><span class="phone-number">24 367 15 00</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="cityGuard">Straż Miejska</span><span class="phone-number">24 367 15 86</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="immigrantCenter">Ośrodek dla Imigrantów</span><span class="phone-number">24 367 16 50</span></div>
+      </div>
+    </div>
+
+    <div class="right-icons">
+      <svg class="profile-icon" id="profileIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <circle cx="12" cy="12" r="10" stroke="#ff6b35" stroke-width="2" fill="white"/>
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#ff6b35"/>
+        <circle cx="18" cy="6" r="3" fill="#4CAF50"/>
+        <path d="M16.5 6.5l.7.7 1.3-1.3" stroke="white" stroke-width="1" fill="none"/>
+      </svg>
+
+      <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+    </div>
+
+   
+    <div class="dropdown profile-dropdown" id="profileDropdown">
+      <div class="dropdown-header"><div class="profile-status"><span class="verified-badge" data-i18n="verified">✓ ZWERYFIKOWANY</span></div></div>
+      <div class="dropdown-item profile-item" data-link="profil.html" data-i18n="profile">Profil</div>
+      <div class="dropdown-item profile-item" data-link="ankieta2.html" data-i18n="extraData">Dane dodatkowe</div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item profile-item logout" data-link="index.html" data-i18n="logout">Wyloguj</div>
+    </div>
+
+    
+    <div class="dropdown language-dropdown" id="languageDropdown">
+      <div class="dropdown-item language-item" data-lang="pl"><span class="flag-emoji">🇵🇱</span><span>Polski</span></div>
+      <div class="dropdown-item language-item" data-lang="en"><span class="flag-emoji">🇬🇧</span><span>English</span></div>
+      <div class="dropdown-item language-item" data-lang="ru"><span class="flag-emoji">🇷🇺</span><span>Русский</span></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="page-title" data-i18n="title">ANKIETA DLA IMIGRANTÓW</h1>
+    <p class="page-subtitle" data-i18n="subtitle">Pomóż nam lepiej poznać Twoje potrzeby, abyśmy mogli dostosować nasze usługi i informacje specjalnie dla Ciebie. Ankieta jest anonimowa i zajmie około 3–5 minut.</p>
+
+    <div class="progress-text" data-i18n="progressText">Postęp ankiety</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <form class="survey-form" id="surveyForm">
+      
+      <div class="question-container visible" data-question="1">
+        <div class="question-number">1</div>
+        <h3 class="question-title" data-i18n="q1Title">Jakie posiadasz obywatelstwo?</h3>
+        <p class="question-subtitle" data-i18n="q1Sub">Informacja ta pomoże nam dostosować informacje prawne do Twojej sytuacji</p>
+        <div class="form-group">
+          <select id="citizenship" name="citizenship" class="form-select" required>
+            <option value="" data-i18n="q1Placeholder">Wybierz swoje obywatelstwo</option>
+            <option value="UA">🇺🇦 Ukraina</option><option value="BY">🇧🇾 Białoruś</option><option value="RU">🇷🇺 Rosja</option>
+            <option value="DE">🇩🇪 Niemcy</option><option value="GB">🇬🇧 Wielka Brytania</option><option value="FR">🇫🇷 Francja</option>
+            <option value="IT">🇮🇹 Włochy</option><option value="ES">🇪🇸 Hiszpania</option><option value="NL">🇳🇱 Holandia</option>
+            <option value="SE">🇸🇪 Szwecja</option><option value="NO">🇳🇴 Norwegia</option><option value="US">🇺🇸 USA</option>
+            <option value="CA">🇨🇦 Kanada</option><option value="IN">🇮🇳 Indie</option><option value="CN">🇨🇳 Chiny</option>
+            <option value="JP">🇯🇵 Japonia</option><option value="BR">🇧🇷 Brazylia</option><option value="TR">🇹🇷 Turcja</option>
+            <option value="EG">🇪🇬 Egipt</option><option value="MA">🇲🇦 Maroko</option>
+            <option value="OTHER" data-i18n="q1Other">🌍 Inne</option>
+          </select>
+        </div>
+      </div>
+
+      
+      <div class="question-container" data-question="2">
+        <div class="question-number">2</div>
+        <h3 class="question-title" data-i18n="q2Title">Podaj datę wjazdu do Polski</h3>
+        <p class="question-subtitle" data-i18n="q2Sub">Data pomoże nam zrozumieć, na jakim etapie adaptacji się znajdujesz</p>
+        <div class="form-group"><input type="date" id="entryDate" name="entryDate" class="form-input" required></div>
+      </div>
+
+      
+      <div class="question-container" data-question="3">
+        <div class="question-number">3</div>
+        <h3 class="question-title" data-i18n="q3Title">Jaki jest główny cel Twojego pobytu w Polsce?</h3>
+        <p class="question-subtitle" data-i18n="q3Sub">Wybierz najważniejszy powód Twojego przyjazdu</p>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="purposeOfStay" value="work" required><span class="radio-label" data-i18n="q3Work">💼 Praca / Zatrudnienie</span></label>
+          <label class="radio-option"><input type="radio" name="purposeOfStay" value="education" required><span class="radio-label" data-i18n="q3Edu">📚 Studia / Edukacja</span></label>
+          <label class="radio-option"><input type="radio" name="purposeOfStay" value="family" required><span class="radio-label" data-i18n="q3Family">👨‍👩‍👧‍👦 Łączenie rodzin</span></label>
+          <label class="radio-option"><input type="radio" name="purposeOfStay" value="refuge" required><span class="radio-label" data-i18n="q3Refuge">🛡️ Ochrona międzynarodowa</span></label>
+          <label class="radio-option"><input type="radio" name="purposeOfStay" value="business" required><span class="radio-label" data-i18n="q3Biz">🏢 Prowadzenie działalności gospodarczej</span></label>
+          <label class="radio-option"><input type="radio" name="purposeOfStay" value="other" required><span class="radio-label" data-i18n="q3Other">🔄 Inne</span></label>
+        </div>
+      </div>
+
+      
+      <div class="question-container" data-question="4">
+        <div class="question-number">4</div>
+        <h3 class="question-title" data-i18n="q4Title">Jak oceniasz swój obecny poziom znajomości języka polskiego?</h3>
+        <p class="question-subtitle" data-i18n="q4Sub">Samoocena pomoże nam zaproponować odpowiednie kursy językowe</p>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="polishLevel" value="none" required><span class="radio-label" data-i18n="q4None">🚫 Nie znam języka polskiego</span></label>
+          <label class="radio-option"><input type="radio" name="polishLevel" value="basic" required><span class="radio-label" data-i18n="q4Basic">🔤 Podstawowy (rozumiem proste słowa)</span></label>
+          <label class="radio-option"><input type="radio" name="polishLevel" value="intermediate" required><span class="radio-label" data-i18n="q4Mid">💬 Średni (prowadzę proste rozmowy)</span></label>
+          <label class="radio-option"><input type="radio" name="polishLevel" value="advanced" required><span class="radio-label" data-i18n="q4Adv">📖 Zaawansowany (czytam, piszę, rozmawiam)</span></label>
+          <label class="radio-option"><input type="radio" name="polishLevel" value="fluent" required><span class="radio-label" data-i18n="q4Fluent">🎯 Biegły (władam swobodnie)</span></label>
+        </div>
+      </div>
+
+      
+      <div class="question-container" data-question="5">
+        <div class="question-number">5</div>
+        <h3 class="question-title" data-i18n="q5Title">W jakich obszarach potrzebujesz największego wsparcia?</h3>
+        <p class="question-subtitle" data-i18n="q5Sub">Możesz wybrać kilka opcji - pomożemy Ci w priorytetowych sprawach</p>
+        <div class="checkbox-group">
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="housing"><span class="checkbox-label" data-i18n="needHousing">🏠 Znalezienie mieszkania</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="employment"><span class="checkbox-label" data-i18n="needJob">💼 Znalezienie pracy</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="language"><span class="checkbox-label" data-i18n="needLang">🗣️ Nauka języka polskiego</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="healthcare"><span class="checkbox-label" data-i18n="needHealth">🏥 Dostęp do opieki zdrowotnej</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="education"><span class="checkbox-label" data-i18n="needKidsEdu">🎓 Edukacja dzieci</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="legal"><span class="checkbox-label" data-i18n="needLegal">⚖️ Pomoc prawna i legalizacja pobytu</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="social"><span class="checkbox-label" data-i18n="needSocial">👥 Integracja społeczna i kulturowa</span></label>
+          <label class="checkbox-option"><input type="checkbox" name="supportNeeds" value="financial"><span class="checkbox-label" data-i18n="needFinance">💰 Sprawy finansowe i bankowe</span></label>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-button" id="submitButton" data-i18n="submit">Prześlij ankietę</button>
+    </form>
+  </main>
+
+  <script>
+    
+    const t={
+      pl:{verified:"✓ ZWERYFIKOWANY",profile:"Profil",extraData:"Dane dodatkowe",logout:"Wyloguj",menuFirst:"Pierwsze kroki",menuBase:"Baza wiedzy",menuHelp:"Pomoc",police:"Policja",cityOffice:"Urząd Miasta",cityGuard:"Straż Miejska",immigrantCenter:"Ośrodek dla Imigrantów",
+          title:"ANKIETA DLA IMIGRANTÓW",subtitle:"Pomóż nam lepiej poznać Twoje potrzeby, abyśmy mogli dostosować nasze usługi i informacje specjalnie dla Ciebie. Ankieta jest anonimowa i zajmie około 3–5 minut.",progressText:"Postęp ankiety",
+          q1Title:"Jakie posiadasz obywatelstwo?",q1Sub:"Informacja ta pomoże nam dostosować informacje prawne do Twojej sytuacji",q1Placeholder:"Wybierz swoje obywatelstwo",q1Other:"🌍 Inne",
+          q2Title:"Podaj datę wjazdu do Polski",q2Sub:"Data pomoże nam zrozumieć, na jakim etapie adaptacji się znajdujesz",
+          q3Title:"Jaki jest główny cel Twojego pobytu w Polsce?",q3Sub:"Wybierz najważniejszy powód Twojego przyjazdu",q3Work:"💼 Praca / Zatrudnienie",q3Edu:"📚 Studia / Edukacja",q3Family:"👨‍👩‍👧‍👦 Łączenie rodzin",q3Refuge:"🛡️ Ochrona międzynarodowa",q3Biz:"🏢 Prowadzenie działalności gospodarczej",q3Other:"🔄 Inne",
+          q4Title:"Jak oceniasz swój obecny poziom znajomości języka polskiego?",q4Sub:"Samoocena pomoże nam zaproponować odpowiednie kursy językowe",q4None:"🚫 Nie znam języka polskiego",q4Basic:"🔤 Podstawowy (rozumiem proste słowa)",q4Mid:"💬 Średni (prowadzę proste rozmowy)",q4Adv:"📖 Zaawansowany (czytam, piszę, rozmawiam)",q4Fluent:"🎯 Biegły (władam swobodnie)",
+          q5Title:"W jakich obszarach potrzebujesz największego wsparcia?",q5Sub:"Możesz wybrać kilka opcji - pomożemy Ci w priorytetowych sprawach",
+          needHousing:"🏠 Znalezienie mieszkania",needJob:"💼 Znalezienie pracy",needLang:"🗣️ Nauka języka polskiego",needHealth:"🏥 Dostęp do opieki zdrowotnej",needKidsEdu:"🎓 Edukacja dzieci",needLegal:"⚖️ Pomoc prawna i legalizacja pobytu",needSocial:"👥 Integracja społeczna i kulturowa",needFinance:"💰 Sprawy finansowe i bankowe",
+          submit:"Prześlij ankietę",alertIncomplete:"Proszę odpowiedzieć na wszystkie pytania przed przesłaniem ankiety.",sending:"Przesyłanie...",sent:"✓ Przesłano",thanks:"Dziękujemy za wypełnienie ankiety!\n\nTwoje odpowiedzi pomogą nam lepiej dostosować nasze usługi.\n\nZa chwilę otrzymasz spersonalizowane rekomendacje.",
+          recA:"📋 Sprawdź specjalne programy pomocowe dla obywateli Twojego kraju",recB:"🆕 Skorzystaj z programu \"Pierwsze 30 dni\"",recC:"💼 Odwiedź Powiatowy Urząd Pracy w Płocku",recD:"🎓 Sprawdź ofertę szkół wyższych w Płocku",recE:"🗣️ Zapisz się na bezpłatny kurs języka polskiego",recF1:"🏠 Wskazówki dotyczące wynajmu mieszkania",recF2:"🏥 Jak wybrać lekarza rodzinnego"},
+      en:{verified:"✓ VERIFIED",profile:"Profile",extraData:"Additional data",logout:"Log out",menuFirst:"First steps",menuBase:"Knowledge base",menuHelp:"Help",police:"Police",cityOffice:"City Office",cityGuard:"City Guard",immigrantCenter:"Immigrant Center",
+          title:"SURVEY FOR IMMIGRANTS",subtitle:"Help us understand your needs so we can tailor services and information for you. The survey is anonymous and takes about 3–5 minutes.",progressText:"Survey progress",
+          q1Title:"What is your citizenship?",q1Sub:"This helps us tailor legal info to your situation",q1Placeholder:"Choose your citizenship",q1Other:"🌍 Other",
+          q2Title:"Enter your date of entry to Poland",q2Sub:"This shows where you are in your adaptation journey",
+          q3Title:"What is the main purpose of your stay in Poland?",q3Sub:"Pick the most important reason",q3Work:"💼 Work / Employment",q3Edu:"📚 Studies / Education",q3Family:"👨‍👩‍👧‍👦 Family reunification",q3Refuge:"🛡️ International protection",q3Biz:"🏢 Running a business",q3Other:"🔄 Other",
+          q4Title:"How do you rate your current Polish level?",q4Sub:"Self-assessment helps us suggest courses",q4None:"🚫 I don't know Polish",q4Basic:"🔤 Basic (simple words)",q4Mid:"💬 Intermediate (simple talks)",q4Adv:"📖 Advanced (read, write, speak)",q4Fluent:"🎯 Fluent",
+          q5Title:"Which areas do you need the most support in?",q5Sub:"You can choose several options",
+          needHousing:"🏠 Finding housing",needJob:"💼 Finding a job",needLang:"🗣️ Polish language learning",needHealth:"🏥 Access to healthcare",needKidsEdu:"🎓 Children's education",needLegal:"⚖️ Legal help & residency",needSocial:"👥 Social & cultural integration",needFinance:"💰 Finance & banking",
+          submit:"Submit survey",alertIncomplete:"Please answer all questions before submitting.",sending:"Sending...",sent:"✓ Sent",thanks:"Thank you for completing the survey!\n\nYour answers help us tailor services.\n\nYou’ll get personalized recommendations shortly.",
+          recA:"📋 Check special assistance programs",recB:"🆕 Use the \"First 30 days\" program",recC:"💼 Visit the labour office in Płock",recD:"🎓 Explore universities in Płock",recE:"🗣️ Enroll in a free Polish course",recF1:"🏠 Renting tips",recF2:"🏥 Choosing a family doctor"},
+      ru:{verified:"✓ ПОДТВЕРЖДЕНО",profile:"Профиль",extraData:"Дополнительные данные",logout:"Выйти",menuFirst:"Первые шаги",menuBase:"База знаний",menuHelp:"Помощь",police:"Полиция",cityOffice:"Городская управа",cityGuard:"Муниципальная стража",immigrantCenter:"Центр для иммигрантов",
+          title:"АНКЕТА ДЛЯ ИММИГРАНТОВ",subtitle:"Помогите нам понять ваши потребности, чтобы мы могли адаптировать сервисы и информацию. Опрос анонимный, займёт 3–5 минут.",progressText:"Прогресс анкеты",
+          q1Title:"Какое у вас гражданство?",q1Sub:"Это поможет подобрать юридическую информацию",q1Placeholder:"Выберите гражданство",q1Other:"🌍 Другое",
+          q2Title:"Укажите дату въезда в Польшу",q2Sub:"Так мы поймём этап адаптации",
+          q3Title:"Какова главная цель пребывания в Польше?",q3Sub:"Выберите самый важный вариант",q3Work:"💼 Работа / трудоустройство",q3Edu:"📚 Учёба / образование",q3Family:"👨‍👩‍👧‍👦 Воссоединение семьи",q3Refuge:"🛡️ Международная защита",q3Biz:"🏢 Ведение бизнеса",q3Other:"🔄 Другое",
+          q4Title:"Оцените уровень польского языка",q4Sub:"Самооценка поможет подобрать курсы",q4None:"🚫 Не знаю польского",q4Basic:"🔤 Базовый",q4Mid:"💬 Средний",q4Adv:"📖 Продвинутый",q4Fluent:"🎯 Свободный",
+          q5Title:"В каких областях нужна поддержка?",q5Sub:"Можно выбрать несколько вариантов",
+          needHousing:"🏠 Поиск жилья",needJob:"💼 Поиск работы",needLang:"🗣️ Изучение польского",needHealth:"🏥 Доступ к медицине",needKidsEdu:"🎓 Образование детей",needLegal:"⚖️ Юридическая помощь и легализация",needSocial:"👥 Социальная и культурная интеграция",needFinance:"💰 Финансы и банки",
+          submit:"Отправить анкету",alertIncomplete:"Пожалуйста, ответьте на все вопросы.",sending:"Отправка...",sent:"✓ Отправлено",thanks:"Спасибо за заполнение анкеты!\n\nСкоро вы получите персональные рекомендации.",
+          recA:"📋 Спецпрограммы помощи",recB:"🆕 «Первые 30 дней»",recC:"💼 Центр занятости в Плоцке",recD:"🎓 Вузы Плоцка",recE:"🗣️ Бесплатный курс польского",recF1:"🏠 Советы по аренде",recF2:"🏥 Выбор семейного врача"}
+    };
+
+    function applyLang(lang){
+      if(!t[lang]) return;
+      document.documentElement.lang=lang;
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const key=el.getAttribute("data-i18n");
+        const attr=el.getAttribute("data-i18n-attr");
+        const val=t[lang][key];
+        if(val==null) return;
+        if(attr){el.setAttribute(attr,val);}else{el.textContent=val;}
+      });
+    }
+    function setLang(lang){localStorage.setItem("lang",lang);applyLang(lang);}
+    document.addEventListener("DOMContentLoaded",()=>applyLang(localStorage.getItem("lang")||"pl"));
+
+    
+    const menuIcon=document.getElementById('menuIcon');
+    const phoneIcon=document.getElementById('phoneIcon');
+    const languageIcon=document.getElementById('languageIcon');
+    const profileIcon=document.getElementById('profileIcon');
+    const menuDropdown=document.getElementById('menuDropdown');
+    const phoneDropdown=document.getElementById('phoneDropdown');
+    const languageDropdown=document.getElementById('languageDropdown');
+    const profileDropdown=document.getElementById('profileDropdown');
+    const overlay=document.getElementById('overlay');
+
+    function closeAll(){menuDropdown.classList.remove('show');phoneDropdown.classList.remove('show');languageDropdown.classList.remove('show');profileDropdown.classList.remove('show');overlay.classList.remove('show');}
+
+    menuIcon.addEventListener('click',e=>{e.stopPropagation();closeAll();menuDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+    phoneIcon.addEventListener('click',e=>{e.stopPropagation();closeAll();phoneDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+    languageIcon.addEventListener('click',e=>{e.stopPropagation();closeAll();languageDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+    profileIcon.addEventListener('click',e=>{e.stopPropagation();closeAll();profileDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+    overlay.addEventListener('click',closeAll);
+    document.addEventListener('click',e=>{if(!e.target.closest('.dropdown')&&!e.target.closest('.menu-icon')&&!e.target.closest('.phone-icon')&&!e.target.closest('.language-icon')&&!e.target.closest('.profile-icon')) closeAll();});
+    document.querySelectorAll('.dropdown').forEach(d=>d.addEventListener('click',e=>e.stopPropagation()));
+
+    
+    document.querySelectorAll('.menu-dropdown .dropdown-item').forEach(it=>it.addEventListener('click',()=>{const link=it.dataset.link;if(link) location.href=link;closeAll();}));
+    document.querySelectorAll('.profile-dropdown .dropdown-item').forEach(it=>it.addEventListener('click',()=>{const link=it.dataset.link;if(link) location.href=link;closeAll();}));
+    
+    document.querySelectorAll('.language-dropdown .language-item').forEach(it=>it.addEventListener('click',()=>{setLang(it.getAttribute('data-lang'));closeAll();}));
+    
+    document.querySelectorAll('.phone-dropdown .dropdown-item').forEach(it=>it.addEventListener('click',()=>{const num=it.querySelector('.phone-number').textContent;console.log('Dial:',num);closeAll();}));
+
+    
+    const surveyForm=document.getElementById('surveyForm');
+    const progressFill=document.getElementById('progressFill');
+    const submitButton=document.getElementById('submitButton');
+    const totalQuestions=5; let answeredQuestions=0;
+
+    function updateProgress(){const p=(answeredQuestions/totalQuestions)*100;progressFill.style.width=p+'%';submitButton.disabled=answeredQuestions!==totalQuestions;}
+    function showNext(n){if(n<totalQuestions){const next=document.querySelector(`[data-question="${n+1}"]`);if(next)setTimeout(()=>next.classList.add('visible'),300);}}
+    function answered(n){
+      switch(n){
+        case 1:return document.getElementById('citizenship').value!=='';
+        case 2:return document.getElementById('entryDate').value!=='';
+        case 3:return !!document.querySelector('input[name="purposeOfStay"]:checked');
+        case 4:return !!document.querySelector('input[name="polishLevel"]:checked');
+        case 5:return document.querySelectorAll('input[name="supportNeeds"]:checked').length>0;
+        default:return false;
+      }
+    }
+    function recount(){answeredQuestions=0;for(let i=1;i<=totalQuestions;i++) if(answered(i)) answeredQuestions++;updateProgress();}
+
+    document.getElementById('citizenship').addEventListener('change',()=>{recount();if(answered(1))showNext(1);});
+    document.getElementById('entryDate').addEventListener('change',()=>{recount();if(answered(2))showNext(2);});
+    document.querySelectorAll('input[name="purposeOfStay"]').forEach(r=>r.addEventListener('change',()=>{recount();showNext(3);document.querySelectorAll('.radio-option').forEach(o=>o.classList.remove('selected'));r.closest('.radio-option').classList.add('selected');}));
+    document.querySelectorAll('input[name="polishLevel"]').forEach(r=>r.addEventListener('change',()=>{recount();showNext(4);document.querySelectorAll('input[name="polishLevel"]').forEach(x=>x.closest('.radio-option').classList.remove('selected'));r.closest('.radio-option').classList.add('selected');}));
+    document.querySelectorAll('input[name="supportNeeds"]').forEach(c=>c.addEventListener('change',()=>{recount();c.closest('.checkbox-option').classList.toggle('selected',c.checked);}))
+
+    surveyForm.addEventListener('submit',e=>{
+      e.preventDefault();
+      const lang=document.documentElement.lang||'pl';
+      if(answeredQuestions<totalQuestions){alert(t[lang].alertIncomplete);return;}
+      const f=new FormData(surveyForm);
+      const data={citizenship:f.get('citizenship'),entryDate:f.get('entryDate'),purposeOfStay:f.get('purposeOfStay'),polishLevel:f.get('polishLevel'),supportNeeds:f.getAll('supportNeeds'),submittedAt:new Date().toISOString()};
+      console.log('Survey:',data);
+      submitButton.textContent=t[lang].sending;submitButton.disabled=true;
+      setTimeout(()=>{submitButton.textContent=t[lang].sent;submitButton.style.background='linear-gradient(135deg,#4CAF50,#66BB6A)';setTimeout(()=>{alert(t[lang].thanks);recommend(data,lang);},800);},1200);
+    });
+
+    function recommend(d,lang){
+      const rec=[];
+      if(['UA','BY','RU'].includes(d.citizenship)) rec.push(t[lang].recA);
+      const days=(Date.now()-new Date(d.entryDate))/86400000; if(days<30) rec.push(t[lang].recB);
+      if(d.purposeOfStay==='work') rec.push(t[lang].recC);
+      else if(d.purposeOfStay==='education') rec.push(t[lang].recD);
+      if(['none','basic'].includes(d.polishLevel)) rec.push(t[lang].recE);
+      if(d.supportNeeds.includes('housing')) rec.push(t[lang].recF1);
+      if(d.supportNeeds.includes('healthcare')) rec.push(t[lang].recF2);
+      console.log('Recommendations:',rec);
+    }
+
+    
+    updateProgress();
+    const today=new Date().toISOString().split('T')[0];
+    const minDate=new Date();minDate.setFullYear(minDate.getFullYear()-10);
+    document.getElementById('entryDate').setAttribute('max',today);
+    document.getElementById('entryDate').setAttribute('min',minDate.toISOString().split('T')[0]);
+  </script>
+</body>
+</html>

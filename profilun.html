@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="headTitle">Profil Użytkownika - Aplikacja dla Imigrantów</title>
+  <style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#fff;color:#666;min-height:100vh;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;position:relative;z-index:1000;border-bottom:1px solid #f0f0f0}
+.left-icons{display:flex;gap:15px;align-items:center}
+.right-icons{display:flex;gap:15px;align-items:center}
+.menu-icon,.phone-icon,.language-icon,.profile-icon,.back-icon{width:24px;height:24px;cursor:pointer;transition:transform .2s ease}
+.menu-icon:hover,.phone-icon:hover,.language-icon:hover,.profile-icon:hover,.back-icon:hover{transform:scale(1.1)}
+.dropdown{position:absolute;top:50px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:none;min-width:200px;z-index:1001}
+.dropdown.show{display:block}
+.menu-dropdown{left:0}
+.phone-dropdown{left:45px}
+.language-dropdown{right:0;min-width:150px}
+.profile-dropdown{right:45px;min-width:180px}
+.dropdown-item{padding:12px 16px;cursor:pointer;transition:background-color .2s ease;border-bottom:1px solid #f0f0f0;color:#666}
+.dropdown-item:last-child{border-bottom:none}
+.dropdown-item:hover{background-color:#f8f8f8}
+.dropdown-item a{color:#666;text-decoration:none}
+.dropdown-item a:hover{color:#666}
+.dropdown-item.phone-item{display:flex;justify-content:space-between;align-items:center}
+.dropdown-item.phone-item .phone-number{color:#ff6b35;font-weight:bold}
+.dropdown-item.language-item{display:flex;align-items:center;gap:8px}
+.flag-emoji{font-size:18px}
+.dropdown-header{padding:8px 16px;background:#f8f8f8;border-bottom:1px solid #e0e0e0}
+.verified-badge{color:#4CAF50;font-size:12px;font-weight:bold;display:flex;align-items:center;gap:4px}
+.profile-item{font-weight:500}
+.profile-item.logout{color:#dc3545;border-top:1px solid #f0f0f0}
+.dropdown-divider{height:1px;background:#e0e0e0;margin:5px 0}
+.main-content{flex:1;padding:20px;max-width:600px;margin:0 auto;width:100%}
+.page-title{text-align:center;font-size:24px;color:#ff6b35;margin-bottom:30px;font-weight:bold}
+.profile-form{background:#fff;border-radius:15px;padding:30px;box-shadow:0 8px 25px rgba(0,0,0,.1);border:2px solid #f0f0f0}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:25px}
+.form-group{display:flex;flex-direction:column}
+.form-group.full-width{grid-column:1 / -1}
+.form-label{font-size:14px;font-weight:600;color:#333;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.required{color:#ff6b35}
+.form-input{padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;color:#666;transition:all .3s ease;background:#fff}
+.form-input:focus{outline:none;border-color:#ff6b35;box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.form-input::placeholder{color:#999}
+.form-select{padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;color:#666;background:#fff;cursor:pointer;transition:all .3s ease}
+.form-select:focus{outline:none;border-color:#ff6b35;box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.date-input{padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;color:#666;background:#fff;cursor:pointer;transition:all .3s ease}
+.date-input:focus{outline:none;border-color:#ff6b35;box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.save-button{background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;padding:15px 40px;border-radius:25px;font-size:18px;font-weight:bold;cursor:pointer;transition:all .3s ease;box-shadow:0 4px 15px rgba(255,107,53,.3);text-transform:uppercase;letter-spacing:.5px;display:block;margin:30px auto 0;min-width:150px}
+.save-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,53,.4)}
+.save-button:active{transform:translateY(0)}
+.profile-header{text-align:center;margin-bottom:30px}
+.profile-avatar{width:80px;height:80px;background:linear-gradient(135deg,#ff6b35,#ff8c42);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 15px;box-shadow:0 4px 15px rgba(255,107,53,.3);position:relative}
+.profile-avatar svg{width:40px;height:40px;fill:#fff}
+.verified-icon{position:absolute;bottom:-5px;right:-5px;width:24px;height:24px;background:#4CAF50;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
+.status-text{color:#4CAF50;font-size:14px;font-weight:600}
+.form-hint{font-size:12px;color:#999;margin-top:5px;font-style:italic}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);display:none;z-index:999}
+.overlay.show{display:block}
+@media (max-width:600px){
+  .main-content{padding:15px}
+  .profile-form{padding:20px}
+  .form-row{grid-template-columns:1fr;gap:15px;margin-bottom:20px}
+  .page-title{font-size:20px}
+  .form-input,.form-select,.date-input{font-size:14px;padding:10px 12px}
+  .save-button{font-size:16px;padding:12px 30px}
+}
+.dropdown a,.profile-dropdown a,.menu-dropdown a,.language-dropdown a,.phone-dropdown a{text-decoration:none!important;color:#666!important;display:block}
+.dropdown a:visited,.dropdown a:hover,.dropdown a:active{text-decoration:none!important;color:#666!important}
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <header class="header">
+    <div class="left-icons">
+      <a href="index.html">
+        <svg class="back-icon" id="backIcon" viewBox="0 0 24 24" fill="#ff6b35">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+      </a>
+
+      <svg class="menu-icon" id="menuIcon" viewBox="0 0 24 24" fill="#666">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+
+      <svg class="phone-icon" id="phoneIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+
+      
+      <div class="dropdown menu-dropdown" id="menuDropdown">
+        <div class="dropdown-item" onclick="window.location.href='pierwsze.html'" data-i18n="menu.firstSteps">PIERWSZE KROKI</div>
+        <div class="dropdown-item" onclick="window.location.href='bazawiedzy.html'" data-i18n="menu.knowledge">BAZA WIEDZY</div>
+        <div class="dropdown-item" onclick="window.location.href='pomoc.html'" data-i18n="menu.help">POMOC</div>
+      </div>
+
+      
+      <div class="dropdown phone-dropdown" id="phoneDropdown">
+        <div class="dropdown-item phone-item"><span data-i18n="phone.police">Policja</span><span class="phone-number">997</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.cityOffice">Urząd Miasta</span><span class="phone-number">24 367 15 00</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.cityGuard">Straż Miejska</span><span class="phone-number">24 367 15 86</span></div>
+        <div class="dropdown-item phone-item"><span data-i18n="phone.immigrantCenter">Ośrodek dla Imigrantów</span><span class="phone-number">24 367 16 50</span></div>
+      </div>
+    </div>
+
+    <div class="right-icons">
+      <svg class="profile-icon" id="profileIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <circle cx="12" cy="12" r="10" stroke="#ff6b35" stroke-width="2" fill="white"/>
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#ff6b35"/>
+        <circle cx="18" cy="6" r="3" fill="#4CAF50"/>
+        <path d="M16.5 6.5l.7.7 1.3-1.3" stroke="white" stroke-width="1" fill="none"/>
+      </svg>
+
+      <svg class="language-icon" id="languageIcon" viewBox="0 0 24 24" fill="#ff6b35">
+        <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+      </svg>
+
+      
+      <div class="dropdown profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+          <div class="profile-status">
+            <span class="verified-badge" data-i18n="profileMenu.verified">✓ ZWERYFIKOWANY</span>
+          </div>
+        </div>
+        <a href="profil.html"><div class="dropdown-item profile-item" data-i18n="profileMenu.profile">PROFIL</div></a>
+        <a href="ankieta2.html"><div class="dropdown-item profile-item" data-i18n="profileMenu.extra">DANE DODATKOWE</div></a>
+        <div class="dropdown-divider"></div>
+        <a href="index.html"><div class="dropdown-item profile-item logout" data-i18n="profileMenu.logout">WYLOGUJ</div></a>
+      </div>
+
+      
+      <div class="dropdown language-dropdown" id="languageDropdown">
+        <div class="dropdown-item language-item" data-lang="pl"><span class="flag-emoji">🇵🇱</span><span>Polski</span></div>
+        <div class="dropdown-item language-item" data-lang="en"><span class="flag-emoji">🇬🇧</span><span>English</span></div>
+        <div class="dropdown-item language-item" data-lang="ru"><span class="flag-emoji">🇷🇺</span><span>Русский</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="page-title" data-i18n="pageTitle">PROFIL UŻYTKOWNIKA</h1>
+
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="verified-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+      </div>
+      <div class="status-text" data-i18n="statusText">Profil zweryfikowany</div>
+    </div>
+
+    <form class="profile-form" id="profileForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="firstName"><span data-i18n="form.firstName">Imię</span> <span class="required">*</span></label>
+          <input type="text" id="firstName" name="firstName" class="form-input" required data-i18n-placeholder="ph.firstName" placeholder="Wprowadź imię">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lastName"><span data-i18n="form.lastName">Nazwisko</span> <span class="required">*</span></label>
+          <input type="text" id="lastName" name="lastName" class="form-input" required data-i18n-placeholder="ph.lastName" placeholder="Wprowadź nazwisko">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="birthDate"><span data-i18n="form.birthDate">Data urodzenia</span> <span class="required">*</span></label>
+          <input type="date" id="birthDate" name="birthDate" class="date-input" required>
+          <div class="form-hint" data-i18n="hints.birthFmt">Format: DD/MM/RRRR</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="pesel"><span data-i18n="form.pesel">PESEL</span></label>
+          <input type="text" id="pesel" name="pesel" class="form-input" maxlength="11" data-i18n-placeholder="ph.pesel" placeholder="00000000000">
+          <div class="form-hint" data-i18n="hints.pesel">11-cyfrowy numer identyfikacyjny</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="citizenship"><span data-i18n="form.citizenship">Obywatelstwo</span> <span class="required">*</span></label>
+          <select id="citizenship" name="citizenship" class="form-select" required>
+            <option value="" data-i18n="ph.citizenship">Wybierz obywatelstwo</option>
+            <option value="PL">Polska</option><option value="UA">Ukraina</option><option value="BY">Białoruś</option>
+            <option value="RU">Rosja</option><option value="DE">Niemcy</option><option value="GB">Wielka Brytania</option>
+            <option value="FR">Francja</option><option value="IT">Włochy</option><option value="ES">Hiszpania</option>
+            <option value="US">Stany Zjednoczone</option><option value="CA">Kanada</option><option value="IN">Indie</option>
+            <option value="CN">Chiny</option><option value="JP">Japonia</option><option value="BR">Brazylia</option>
+            <option value="OTHER" data-i18n="opt.other">Inne</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="nativeLanguage"><span data-i18n="form.nativeLang">Język ojczysty</span> <span class="required">*</span></label>
+          <select id="nativeLanguage" name="nativeLanguage" class="form-select" required>
+            <option value="" data-i18n="ph.nativeLang">Wybierz język ojczysty</option>
+            <option value="pl">Polski</option><option value="uk">Ukraiński</option><option value="be">Białoruski</option>
+            <option value="ru">Rosyjski</option><option value="de">Niemiecki</option><option value="en">Angielski</option>
+            <option value="fr">Francuski</option><option value="it">Włoski</option><option value="es">Hiszpański</option>
+            <option value="ar">Arabski</option><option value="hi">Hindi</option><option value="zh">Chiński</option>
+            <option value="ja">Japoński</option><option value="pt">Portugalski</option>
+            <option value="other" data-i18n="opt.other">Inny</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="email"><span data-i18n="form.email">Adres e-mail</span> <span class="required">*</span></label>
+          <input type="email" id="email" name="email" class="form-input" required data-i18n-placeholder="ph.email" placeholder="nazwa@example.com">
+          <div class="form-hint" data-i18n="hints.email">Używany do logowania i powiadomień</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phone"><span data-i18n="form.phone">Numer telefonu</span> <span class="required">*</span></label>
+          <input type="tel" id="phone" name="phone" class="form-input" required data-i18n-placeholder="ph.phone" placeholder="+48 000 000 000">
+          <div class="form-hint" data-i18n="hints.phone">Format międzynarodowy z kodem kraju</div>
+        </div>
+      </div>
+
+      <button type="submit" class="save-button" data-i18n="btn.save">ZAPISZ</button>
+    </form>
+  </main>
+
+  <script>
+
+const i18n = {
+  pl: {
+    headTitle: "Profil Użytkownika - Aplikacja dla Imigrantów",
+    menu: { firstSteps: "PIERWSZE KROKI", knowledge: "BAZA WIEDZY", help: "POMOC" },
+    phone: { police: "Policja", cityOffice: "Urząd Miasta", cityGuard: "Straż Miejska", immigrantCenter: "Ośrodek dla Imigrantów" },
+    profileMenu: { verified: "✓ ZWERYFIKOWANY", profile: "PROFIL", extra: "DANE DODATKOWE", logout: "WYLOGUJ" },
+    pageTitle: "PROFIL UŻYTKOWNIKA",
+    statusText: "Profil zweryfikowany",
+    form: {
+      firstName: "Imię", lastName: "Nazwisko", birthDate: "Data urodzenia",
+      pesel: "PESEL", citizenship: "Obywatelstwo", nativeLang: "Język ojczysty",
+      email: "Adres e-mail", phone: "Numer telefonu"
+    },
+    ph: {
+      firstName: "Wprowadź imię", lastName: "Wprowadź nazwisko",
+      pesel: "00000000000", citizenship: "Wybierz obywatelstwo",
+      nativeLang: "Wybierz język ojczysty", email: "nazwa@example.com",
+      phone: "+48 000 000 000"
+    },
+    hints: {
+      birthFmt: "Format: DD/MM/RRRR",
+      pesel: "11-cyfrowy numer identyfikacyjny",
+      email: "Używany do logowania i powiadomień",
+      phone: "Format międzynarodowy z kodem kraju"
+    },
+    opt: { other: "Inne" },
+    btn: { save: "ZAPISZ", saving: "ZAPISYWANIE...", saved: "✓ ZAPISANO" },
+    alerts: {
+      fillReq: "Proszę wypełnić wszystkie wymagane pola oznaczone gwiazdką (*)",
+      emailInvalid: "Proszę wprowadzić prawidłowy adres e-mail",
+      peselInvalid: "PESEL musi składać się z 11 cyfr",
+      ageInvalid: "Użytkownik musi mieć co najmniej 13 lat",
+      updated: "Profil został pomyślnie zaktualizowany!"
+    }
+  },
+  en: {
+    headTitle: "User Profile - Immigrants App",
+    menu: { firstSteps: "FIRST STEPS", knowledge: "KNOWLEDGE BASE", help: "HELP" },
+    phone: { police: "Police", cityOffice: "City Office", cityGuard: "City Guard", immigrantCenter: "Immigrant Center" },
+    profileMenu: { verified: "✓ VERIFIED", profile: "PROFILE", extra: "ADDITIONAL DATA", logout: "LOG OUT" },
+    pageTitle: "USER PROFILE",
+    statusText: "Profile verified",
+    form: {
+      firstName: "First name", lastName: "Last name", birthDate: "Date of birth",
+      pesel: "PESEL", citizenship: "Citizenship", nativeLang: "Native language",
+      email: "Email address", phone: "Phone number"
+    },
+    ph: {
+      firstName: "Enter first name", lastName: "Enter last name",
+      pesel: "00000000000", citizenship: "Select citizenship",
+      nativeLang: "Select native language", email: "name@example.com",
+      phone: "+48 000 000 000"
+    },
+    hints: {
+      birthFmt: "Format: DD/MM/YYYY",
+      pesel: "11-digit national ID (PL)",
+      email: "Used for login and notifications",
+      phone: "International format with country code"
+    },
+    opt: { other: "Other" },
+    btn: { save: "SAVE", saving: "SAVING...", saved: "✓ SAVED" },
+    alerts: {
+      fillReq: "Please fill all required fields (*)",
+      emailInvalid: "Please enter a valid email address",
+      peselInvalid: "PESEL must be exactly 11 digits",
+      ageInvalid: "User must be at least 13 years old",
+      updated: "Profile has been updated successfully!"
+    }
+  },
+  ru: {
+    headTitle: "Профиль пользователя — Приложение для иммигрантов",
+    menu: { firstSteps: "ПЕРВЫЕ ШАГИ", knowledge: "БАЗА ЗНАНИЙ", help: "ПОМОЩЬ" },
+    phone: { police: "Полиция", cityOffice: "Городская управа", cityGuard: "Муниципальная стража", immigrantCenter: "Центр для иммигрантов" },
+    profileMenu: { verified: "✓ ПОДТВЕРЖДЕНО", profile: "ПРОФИЛЬ", extra: "ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ", logout: "ВЫЙТИ" },
+    pageTitle: "ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ",
+    statusText: "Профиль подтвержден",
+    form: {
+      firstName: "Имя", lastName: "Фамилия", birthDate: "Дата рождения",
+      pesel: "PESEL", citizenship: "Гражданство", nativeLang: "Родной язык",
+      email: "Email", phone: "Телефон"
+    },
+    ph: {
+      firstName: "Введите имя", lastName: "Введите фамилию",
+      pesel: "00000000000", citizenship: "Выберите гражданство",
+      nativeLang: "Выберите родной язык", email: "name@example.com",
+      phone: "+48 000 000 000"
+    },
+    hints: {
+      birthFmt: "Формат: ДД/ММ/ГГГГ",
+      pesel: "11-значный идентификационный номер (PL)",
+      email: "Используется для входа и уведомлений",
+      phone: "Международный формат с кодом страны"
+    },
+    opt: { other: "Другое" },
+    btn: { save: "СОХРАНИТЬ", saving: "СОХРАНЯЕМ...", saved: "✓ СОХРАНЕНО" },
+    alerts: {
+      fillReq: "Заполните все обязательные поля (*)",
+      emailInvalid: "Введите корректный email",
+      peselInvalid: "PESEL должен содержать 11 цифр",
+      ageInvalid: "Пользователь должен быть не моложе 13 лет",
+      updated: "Профиль успешно обновлён!"
+    }
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'pl';
+
+function t(path){
+  const parts = path.split('.');
+  let v = i18n[lang];
+  for (const p of parts) v = v?.[p];
+  return (typeof v === 'string') ? v : '';
+}
+
+function applyI18n(){
+  document.documentElement.lang = lang;
+
+  const titleEl = document.querySelector('title[data-i18n="headTitle"]');
+  if (titleEl) titleEl.textContent = t('headTitle') || titleEl.textContent;
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const txt = t(key);
+    if (txt) el.textContent = txt;
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-placeholder');
+    const txt = t(key);
+    if (txt) el.setAttribute('placeholder', txt);
+  });
+}
+
+
+const menuIcon = document.getElementById('menuIcon');
+const phoneIcon = document.getElementById('phoneIcon');
+const languageIcon = document.getElementById('languageIcon');
+const profileIcon = document.getElementById('profileIcon');
+const backIcon = document.getElementById('backIcon');
+const menuDropdown = document.getElementById('menuDropdown');
+const phoneDropdown = document.getElementById('phoneDropdown');
+const languageDropdown = document.getElementById('languageDropdown');
+const profileDropdown = document.getElementById('profileDropdown');
+const overlay = document.getElementById('overlay');
+
+function closeAllDropdowns(){
+  menuDropdown.classList.remove('show');
+  phoneDropdown.classList.remove('show');
+  languageDropdown.classList.remove('show');
+  profileDropdown.classList.remove('show');
+  overlay.classList.remove('show');
+}
+
+menuIcon.addEventListener('click',e=>{e.stopPropagation();closeAllDropdowns();menuDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+phoneIcon.addEventListener('click',e=>{e.stopPropagation();closeAllDropdowns();phoneDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+languageIcon.addEventListener('click',e=>{e.stopPropagation();closeAllDropdowns();languageDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+profileIcon.addEventListener('click',e=>{e.stopPropagation();closeAllDropdowns();profileDropdown.classList.toggle('show');overlay.classList.toggle('show');});
+backIcon.addEventListener('click',()=>{});
+overlay.addEventListener('click',closeAllDropdowns);
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.dropdown') && !e.target.closest('.menu-icon') &&
+     !e.target.closest('.phone-icon') && !e.target.closest('.language-icon') &&
+     !e.target.closest('.profile-icon')) closeAllDropdowns();
+});
+
+
+document.querySelectorAll('.language-dropdown .language-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    lang = item.getAttribute('data-lang') || 'pl';
+    localStorage.setItem('lang', lang);
+    applyI18n();
+    closeAllDropdowns();
+  });
+});
+
+
+const profileForm = document.getElementById('profileForm');
+const peselInput = document.getElementById('pesel');
+const phoneInput = document.getElementById('phone');
+
+peselInput.addEventListener('input', e=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,11);
+});
+
+phoneInput.addEventListener('input', e=>{
+  let value = e.target.value.replace(/\D/g,'');
+  if(value.length>0 && !value.startsWith('48')){
+    if(value.startsWith('0')) value='48'+value.slice(1);
+    else value='48'+value;
+  }
+  if(value.length>2) value='+'+value.slice(0,2)+' '+value.slice(2);
+  if(value.length>6) value=value.slice(0,6)+' '+value.slice(6);
+  if(value.length>10) value=value.slice(0,10)+' '+value.slice(10);
+  e.target.value = value.slice(0,15);
+});
+
+profileForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const fd = new FormData(profileForm);
+  const data = {
+    firstName: fd.get('firstName'), lastName: fd.get('lastName'),
+    birthDate: fd.get('birthDate'), pesel: fd.get('pesel'),
+    citizenship: fd.get('citizenship'), nativeLanguage: fd.get('nativeLanguage'),
+    email: fd.get('email'), phone: fd.get('phone')
+  };
+
+  if(!data.firstName || !data.lastName || !data.birthDate || !data.citizenship || !data.nativeLanguage || !data.email || !data.phone){
+    alert(i18n[lang].alerts.fillReq); return;
+  }
+
+  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(data.email)){ alert(i18n[lang].alerts.emailInvalid); return; }
+
+  if(data.pesel && data.pesel.length!==11){ alert(i18n[lang].alerts.peselInvalid); return; }
+
+  const birthDate = new Date(data.birthDate); const today = new Date();
+  let age = today.getFullYear()-birthDate.getFullYear();
+  const m = today.getMonth()-birthDate.getMonth();
+  if(m<0 || (m===0 && today.getDate()<birthDate.getDate())) age--;
+  if(age<13){ alert(i18n[lang].alerts.ageInvalid); return; }
+
+  const saveBtn = document.querySelector('.save-button');
+  const orig = saveBtn.textContent;
+  saveBtn.textContent = i18n[lang].btn.saving;
+  saveBtn.disabled=true; saveBtn.style.opacity='0.7';
+
+  setTimeout(()=>{
+    saveBtn.textContent = i18n[lang].btn.saved;
+    saveBtn.style.background='linear-gradient(135deg,#4CAF50,#66BB6A)';
+    setTimeout(()=>{
+      saveBtn.textContent = i18n[lang].btn.save;
+      saveBtn.disabled=false; saveBtn.style.opacity='1';
+      saveBtn.style.background='linear-gradient(135deg,#ff6b35,#ff8c42)';
+      alert(i18n[lang].alerts.updated);
+    },2000);
+  },1500);
+});
+
+
+document.querySelectorAll('.form-input, .form-select, .date-input').forEach(input=>{
+  input.addEventListener('blur',()=>{
+    if(input.hasAttribute('required') && !input.value.trim()){
+      input.style.borderColor='#dc3545';
+      input.style.boxShadow='0 0 0 3px rgba(220,53,69,.1)';
+    }else{
+      input.style.borderColor='#4CAF50';
+      input.style.boxShadow='0 0 0 3px rgba(76,175,80,.1)';
+      setTimeout(()=>{input.style.borderColor='#e0e0e0';input.style.boxShadow='none';},2000);
+    }
+  });
+});
+
+
+applyI18n();
+  </script>
+</body>
+</html>
