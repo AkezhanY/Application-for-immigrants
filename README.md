@@ -44,7 +44,7 @@ The storyboard illustrates a typical user journey through the application:
 
 ●	Utilizing the “First Steps” section, guiding users through a questionnaire that helps them receive personalized recommendations and directions tailored to their needs.
  
-    ![1](images/1.jpg)                            
+    ![photo](images/1.jpg)                            
    
     Moodboard
 The moodboard for the website is designed with a natural and warm color palette to evoke feelings of sustainability, energy, and growth. The key colors used are:
