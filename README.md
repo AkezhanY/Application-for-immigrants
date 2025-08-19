@@ -1,12 +1,16 @@
-               Application for immigrants
-Final Documentation
- Author: Akezhan Yergali
- Date: August 2025
+      Application for immigrants
+   Final Documentation
+   Author: Akezhan Yergali
+   Date: August 2025
  
 0. Abstract
+
 This project presents a responsive web application designed to support immigrants living in Płock, Poland. The platform provides essential services, including access to documents, employment information, healthcare services, and more. With an intuitive interface and multilingual support, the app serves as a one-stop resource for navigating various aspects of life in Poland. Users can quickly find answers to frequently asked questions, check legal status or seek assistance via AI and live chat.
+
 1. Introduction and Motivation
+
 Immigrants in Poland often face challenges in accessing crucial information related to legal matters, employment, healthcare, and social integration. This application aims to simplify these tasks and ensure immigrants can easily find relevant services. The project was motivated by the need for comprehensive, easily accessible information for newcomers, especially in an era of increasing immigration.
+
 Main Questions:
 ●	How can immigrants in Poland better navigate the bureaucratic and social systems?
 
@@ -15,6 +19,7 @@ Main Questions:
 ●	How can an AI-driven platform provide immediate support and guide users to relevant services?
 
 2. Data Sources and Preparation
+   
 The project draws from a variety of official sources, including Polish government websites, city offices, and local services. Data sources such as phone numbers for emergency services, city departments, and immigrant centers are integrated directly into the app for easy access.
 What kind of data was used?
  The project uses both numbers (quantitative)  and labels or categories  (qualitative). Here are the main types:
@@ -48,7 +53,7 @@ The storyboard illustrates a typical user journey through the application:
  ![images/1.jpg](https://raw.githubusercontent.com/AkezhanY/Application-for-immigrants/main/images/1.jpg)
                            
    
-    Moodboard
+  Moodboard
 The moodboard for the website is designed with a natural and warm color palette to evoke feelings of sustainability, energy, and growth. The key colors used are:
 ●	White (#FFFFFF): A clean, neutral background that keeps the layout bright, fresh, and easy to read. It ensures the content is easily accessible and promotes a minimalistic design.
 
