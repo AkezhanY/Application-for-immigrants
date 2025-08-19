@@ -43,8 +43,8 @@ The storyboard illustrates a typical user journey through the application:
 ●	Exploring emergency contact information, offering quick access to important phone numbers and services such as local authorities, hospitals, and immigrant centers.
 
 ●	Utilizing the “First Steps” section, guiding users through a questionnaire that helps them receive personalized recommendations and directions tailored to their needs.
- 
-    ![images/1.jpg](https://raw.githubusercontent.com/AkezhanY/Application-for-immigrants/main/images/1.jpg)                           
+ ![images/1.jpg](https://raw.githubusercontent.com/AkezhanY/Application-for-immigrants/main/images/1.jpg)
+                           
    
     Moodboard
 The moodboard for the website is designed with a natural and warm color palette to evoke feelings of sustainability, energy, and growth. The key colors used are:
